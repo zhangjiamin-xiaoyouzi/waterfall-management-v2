@@ -1589,7 +1589,7 @@ function WaterfallManagementPageContent() {
                     <TableHead className="text-[#86909C] font-medium">PID</TableHead>
                     <TableHead className="text-[#86909C] font-medium">名称</TableHead>
                     <TableHead className="text-[#86909C] font-medium">状态</TableHead>
-                    <TableHead className="text-[#86909C] font-medium">系统平台</TableHead>
+                    <TableHead className="text-[#86909C] font-medium">平台</TableHead>
                     <TableHead className="text-[#86909C] font-medium">广告场景</TableHead>
                     <TableHead className="text-[#86909C] font-medium">广告位</TableHead>
                     <TableHead className="text-[#86909C] font-medium">绑定分组信息</TableHead>
