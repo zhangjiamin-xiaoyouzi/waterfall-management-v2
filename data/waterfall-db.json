@@ -754,6 +754,80 @@
           ]
         }
       ]
+    },
+    {
+      "id": "group-1779700232479",
+      "name": "新增分组优先级2",
+      "priority": 2,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "1000"
+      ],
+      "scene": "splash",
+      "platform": "Android",
+      "rules": [
+        {
+          "ruleType": "identity",
+          "matchType": "include",
+          "values": [
+            "备孕"
+          ]
+        }
+      ],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": [
+        {
+          "id": "source-1779700273430",
+          "name": "Mintegral",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 0,
+          "estimatedRevenue": 0,
+          "ecpm": 0,
+          "thousandRequestValue": 0,
+          "requests": 0,
+          "responses": 0,
+          "responseRate": 0,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "lastUpdated": "2026/5/25 17:11:13",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "11",
+          "subPositions": [],
+          "dspSources": [
+            "dsp_5"
+          ]
+        },
+        {
+          "id": "source-1779700278609",
+          "name": "AppLovin",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 0,
+          "estimatedRevenue": 0,
+          "ecpm": 0,
+          "thousandRequestValue": 0,
+          "requests": 0,
+          "responses": 0,
+          "responseRate": 0,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "lastUpdated": "2026/5/25 17:11:18",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "2",
+          "subPositions": [],
+          "dspSources": [
+            "dsp_7"
+          ]
+        }
+      ]
     }
   ]
 }

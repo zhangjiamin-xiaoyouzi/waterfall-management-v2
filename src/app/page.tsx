@@ -716,6 +716,8 @@ function WaterfallManagementPageContent() {
     if (currentGroup?.abTestDraftData) {
       setAbTestDraftData(currentGroup.abTestDraftData);
     }
+    // 切换分组时清空已选中的来源
+    setSelectedSources(new Set());
   }, [currentGroup?.id]);
 
   // 全选状态
@@ -3390,6 +3392,18 @@ function SourceTable({
     <Table>
       <TableHeader>
         <TableRow className="bg-[#F7F8FA] hover:bg-[#F7F8FA]">
+          <TableHead className="w-10">
+            <Checkbox
+              checked={isAllSelected}
+              ref={(el) => {
+                if (el) {
+                  (el as unknown as HTMLInputElement).indeterminate = isIndeterminate;
+                }
+              }}
+              onCheckedChange={onToggleSelectAll}
+              className="border-[#C9CDD4]"
+            />
+          </TableHead>
           <TableHead className="w-20">操作</TableHead>
           <TableHead className="w-32">DSP来源</TableHead>
           <TableHead className="w-20">状态</TableHead>
@@ -3542,7 +3556,7 @@ function SourceTable({
       </TableHeader>
       <TableBody>
         {summaryData && (
-        <TableRow className="bg-[#FEF3F7] font-medium"><TableCell></TableCell><TableCell className="text-[#1D2129]">{sources.length}个DSP来源已启用</TableCell><TableCell></TableCell><TableCell></TableCell><TableCell className="text-[#1D2129]">{summaryData?.estimatedRevenue.toLocaleString('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</TableCell><TableCell className="text-[#1D2129]">¥{summaryData?.revenuePerThousand?.toFixed(2) || '-'}</TableCell><TableCell className="text-[#1D2129]">¥{summaryData?.ecpm?.toFixed(2) || '-'}</TableCell><TableCell className="text-[#1D2129]">¥{summaryData?.revenuePerThousandRequests?.toFixed(2) || '-'}</TableCell><TableCell className="text-[#1D2129]">{formatNumber(summaryData?.requests || 0)}</TableCell><TableCell className="text-[#1D2129]">{summaryData?.responseRate?.toFixed(1) || '0.0'}%</TableCell><TableCell className="text-[#1D2129]">{formatNumber(summaryData?.bidWins || 0)}</TableCell><TableCell className="text-[#1D2129]">{`${summaryData?.bidWinRate?.toFixed(1) || '0.0'}%`}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.impressions ?? 0) > 0 ? formatNumber(summaryData?.impressions || 0) : '-'}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.winImpressionRate ?? 0) > 0 ? `${summaryData?.winImpressionRate?.toFixed(1)}%` : '-'}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.ctr ?? 0) > 0 ? `${summaryData?.ctr?.toFixed(1)}%` : '-'}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.cpc ?? 0) > 0 ? `¥${summaryData?.cpc?.toFixed(2)}` : '-'}</TableCell></TableRow>
+        <TableRow className="bg-[#FEF3F7] font-medium"><TableCell></TableCell><TableCell></TableCell><TableCell className="text-[#1D2129]">{sources.length}个DSP来源已启用</TableCell><TableCell></TableCell><TableCell></TableCell><TableCell className="text-[#1D2129]">{summaryData?.estimatedRevenue.toLocaleString('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</TableCell><TableCell className="text-[#1D2129]">¥{summaryData?.revenuePerThousand?.toFixed(2) || '-'}</TableCell><TableCell className="text-[#1D2129]">¥{summaryData?.ecpm?.toFixed(2) || '-'}</TableCell><TableCell className="text-[#1D2129]">¥{summaryData?.revenuePerThousandRequests?.toFixed(2) || '-'}</TableCell><TableCell className="text-[#1D2129]">{formatNumber(summaryData?.requests || 0)}</TableCell><TableCell className="text-[#1D2129]">{summaryData?.responseRate?.toFixed(1) || '0.0'}%</TableCell><TableCell className="text-[#1D2129]">{formatNumber(summaryData?.bidWins || 0)}</TableCell><TableCell className="text-[#1D2129]">{`${summaryData?.bidWinRate?.toFixed(1) || '0.0'}%`}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.impressions ?? 0) > 0 ? formatNumber(summaryData?.impressions || 0) : '-'}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.winImpressionRate ?? 0) > 0 ? `${summaryData?.winImpressionRate?.toFixed(1)}%` : '-'}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.ctr ?? 0) > 0 ? `${summaryData?.ctr?.toFixed(1)}%` : '-'}</TableCell><TableCell className="text-[#1D2129]">{(summaryData?.cpc ?? 0) > 0 ? `¥${summaryData?.cpc?.toFixed(2)}` : '-'}</TableCell></TableRow>
         )}
         {sources.map((source) => {
           const colors = getSourceColor(source.name);
@@ -3553,6 +3567,12 @@ function SourceTable({
               onMouseEnter={(e) => onMouseEnter(source, e)}
               onMouseLeave={onMouseLeave}
             ><TableCell onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={selectedSources.has(source.id)}
+                    onCheckedChange={() => onToggleSelect(source.id)}
+                    className="border-[#C9CDD4]"
+                  />
+                </TableCell><TableCell onClick={(e) => e.stopPropagation()}>
                 <Button
                   size="sm"
                   variant="ghost"
