@@ -2221,7 +2221,7 @@ function WaterfallManagementPageContent() {
                   ) : newCodeForm.scene === 'splash' ? (
                     <SelectItem value="1000">1000 - 美柚--开屏</SelectItem>
                   ) : (
-                    <SelectItem value="" disabled>请先选择广告场景</SelectItem>
+                    <SelectItem value="__placeholder__" disabled>请先选择广告场景</SelectItem>
                   )}
                 </SelectContent>
               </Select>
