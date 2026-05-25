@@ -1220,8 +1220,8 @@ function WaterfallManagementPageContent() {
                     >
                       <span>PID管理</span>
                     </button>
-                    {/* 代码位ID管理 - 暂时隐藏 */}
-                    {/* <button
+                    {/* 代码位ID管理 */}
+                    <button
                       className={`w-full flex items-center justify-between px-4 py-2.5 text-sm border-r-2 ${
                         currentPage === 'codePosition'
                           ? 'bg-[#FFF7FA] text-[#1D2129] border-[#FF4D88]'
@@ -1230,7 +1230,7 @@ function WaterfallManagementPageContent() {
                       onClick={() => setCurrentPage('codePosition')}
                     >
                       <span>代码位ID管理</span>
-                    </button> */}
+                    </button>
                   </div>
                 </>
               ) : (
@@ -1259,7 +1259,7 @@ function WaterfallManagementPageContent() {
           </div>
         </header>
 
-        {/* 广告场景与平台筛选 - 仅瀑布流管理页面显示 */}
+        {/* 广告场景与平台筛选 - 仅流量分组管理页面显示 */}
         {currentPage === 'waterfall' && (
         <div className="bg-white border-b border-[#E5E6EB] px-6 py-3">
           <div className="flex items-center gap-4">
