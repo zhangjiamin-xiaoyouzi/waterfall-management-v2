@@ -48,6 +48,7 @@ import {
   Settings2,
   ListOrdered,
   Zap,
+  ExternalLinkIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -289,15 +290,19 @@ function WaterfallManagementPageContent() {
   
   const searchParams = useSearchParams();
   
-  // 从URL参数恢复场景和平台（从A/B测试页返回时）
+  // 从URL参数恢复场景和平台（从A/B测试页返回时 / 从PID管理跳转时）
   useEffect(() => {
     const sceneParam = searchParams.get('scene') as AdScene | null;
     const platformParam = searchParams.get('platform') as 'Android' | 'iOS' | null;
+    const groupParam = searchParams.get('group') as string | null;
     if (sceneParam && ['splash', 'interstitial', 'feed', 'search'].includes(sceneParam)) {
       setActiveScene(sceneParam);
     }
     if (platformParam && ['Android', 'iOS'].includes(platformParam)) {
       setSelectedPlatform(platformParam);
+    }
+    if (groupParam) {
+      setSelectedGroupId(groupParam);
     }
   }, [searchParams]);
 
@@ -524,7 +529,6 @@ function WaterfallManagementPageContent() {
   const [pidAddDspSource, setPidAddDspSource] = useState('');
   const [pidAddCodeId, setPidAddCodeId] = useState('');
   const [pidAddPricingType, setPidAddPricingType] = useState<PricingType>('bidding');
-  const [pidAddPrice, setPidAddPrice] = useState('');
   const [pidAddStatus, setPidAddStatus] = useState(true);
   const [pidAddDspSelectOpen, setPidAddDspSelectOpen] = useState(false);
   const [pidAddError, setPidAddError] = useState('');
@@ -1006,7 +1010,6 @@ function WaterfallManagementPageContent() {
     setPidAddDspSource('');
     setPidAddCodeId('');
     setPidAddPricingType('bidding');
-    setPidAddPrice('');
     setPidAddStatus(true);
     setPidAddError('');
     setPidAddMinVersion('');
@@ -1025,10 +1028,6 @@ function WaterfallManagementPageContent() {
       setPidAddError('请输入PID');
       return;
     }
-    if (pidAddPricingType !== 'bidding' && (!pidAddPrice.trim() || isNaN(Number(pidAddPrice)))) {
-      setPidAddError('请输入有效价格');
-      return;
-    }
     if (SDK_SOURCE_VALUES.has(pidAddDspSource)) {
       if (!pidAddMinVersion.trim() && !pidAddMaxVersion.trim()) {
         setPidAddError('SDK类型DSP来源时，请填写最小版本或最大版本');
@@ -1045,7 +1044,7 @@ function WaterfallManagementPageContent() {
         status: pidAddStatus ? 'enabled' : 'disabled',
         codeId: pidAddCodeId,
         pricingType: pidAddPricingType,
-        price: pidAddPricingType !== 'bidding' ? Number(pidAddPrice) : 0,
+        price: 0,
         minVersion: pidAddMinVersion || undefined,
         maxVersion: pidAddMaxVersion || undefined,
         lastUpdated: new Date().toLocaleString('zh-CN'),
@@ -1085,7 +1084,7 @@ function WaterfallManagementPageContent() {
         name: DSP_SOURCE_NAMES[pidAddDspSource] || pidAddDspSource,
         status: pidAddStatus ? 'enabled' : 'disabled',
         pricingType: pidAddPricingType,
-        price: pidAddPricingType !== 'bidding' ? Number(pidAddPrice) : 0,
+        price: 0,
         estimatedRevenue: 0,
         ecpm: 0,
         thousandRequestValue: 0,
@@ -1111,7 +1110,7 @@ function WaterfallManagementPageContent() {
 
     resetPidAddForm();
     setShowPidAddDialog(false);
-  }, [pidAddDspSource, pidAddCodeId, pidAddPricingType, pidAddPrice, pidAddStatus, pidAddGroupId, pidAddPlatform, editingPidSource, resetPidAddForm, pidAddMinVersion, pidAddMaxVersion]);
+  }, [pidAddDspSource, pidAddCodeId, pidAddPricingType, pidAddStatus, pidAddGroupId, pidAddPlatform, editingPidSource, resetPidAddForm, pidAddMinVersion, pidAddMaxVersion]);
 
   // PID管理页面 - 开启/关闭PID
   const togglePidStatus = useCallback((sourceId: string) => {
@@ -1139,7 +1138,6 @@ function WaterfallManagementPageContent() {
     setPidAddDspSource(source.dspSources?.[0] || '');
     setPidAddCodeId(source.codeId || '');
     setPidAddPricingType(source.pricingType);
-    setPidAddPrice(source.pricingType !== 'bidding' ? String(source.price) : '');
     setPidAddStatus(source.status === 'enabled');
     setPidAddMinVersion(source.minVersion || '');
     setPidAddMaxVersion(source.maxVersion || '');
@@ -1796,9 +1794,8 @@ function WaterfallManagementPageContent() {
                                 <TableRow className="bg-[#F7F8FA]">
                                   <TableHead className="text-[#86909C] font-medium">PID</TableHead>
                                   <TableHead className="text-[#86909C] font-medium">DSP来源</TableHead>
-                                  <TableHead className="text-[#86909C] font-medium">所属分组</TableHead>
+                                  <TableHead className="text-[#86909C] font-medium">关联流量分组</TableHead>
                                   <TableHead className="text-[#86909C] font-medium">定价方式</TableHead>
-                                  <TableHead className="text-[#86909C] font-medium">价格</TableHead>
                                   <TableHead className="text-[#86909C] font-medium">状态</TableHead>
                                   <TableHead className="text-[#86909C] font-medium text-right">操作</TableHead>
                                 </TableRow>
@@ -1813,16 +1810,37 @@ function WaterfallManagementPageContent() {
                                         <span className="text-sm text-[#1D2129]">{p.dspSource}</span>
                                       </div>
                                     </TableCell>
-                                    <TableCell className="text-sm text-[#1D2129]">{p.groupName}</TableCell>
+                                    <TableCell>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {(() => {
+                                          const relatedGroups = adGroups.filter(g =>
+                                            g.adSources.some(s => s.codeId === p.pid)
+                                          );
+                                          return relatedGroups.length > 0 ? relatedGroups.map(g => (
+                                            <button
+                                              key={g.id}
+                                              className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#FFF0F5] text-[#FF4D88] hover:bg-[#FFE0EB] transition-colors cursor-pointer"
+                                              onClick={() => {
+                                                const url = new URL(window.location.href);
+                                                url.searchParams.set('scene', g.scene);
+                                                url.searchParams.set('platform', g.platform);
+                                                url.searchParams.set('group', g.id);
+                                                window.open(url.toString(), '_blank');
+                                              }}
+                                            >
+                                              {g.name}
+                                              <ExternalLinkIcon className="w-3 h-3 ml-1" />
+                                            </button>
+                                          )) : <span className="text-[#86909C] text-sm">-</span>;
+                                        })()}
+                                      </div>
+                                    </TableCell>
                                     <TableCell>
                                       {p.pricingType === 'bidding' ? (
                                         <Badge className="bg-[#EFF6FF] text-[#2563EB] hover:bg-[#EFF6FF]">竞价</Badge>
                                       ) : (
                                         <Badge className="bg-[#F0FDF4] text-[#16A34A] hover:bg-[#F0FDF4]">定价</Badge>
                                       )}
-                                    </TableCell>
-                                    <TableCell className="text-sm text-[#1D2129]">
-                                      {p.pricingType === 'bidding' ? <span className="text-[#86909C]">-</span> : `¥${p.price.toFixed(2)}`}
                                     </TableCell>
                                     <TableCell>
                                       <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
@@ -2887,22 +2905,6 @@ function WaterfallManagementPageContent() {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* 价格 - 定价方式时显示 */}
-            {pidAddPricingType !== 'bidding' && (
-              <div className="flex items-center">
-                <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 价格</label>
-                <div className="relative w-64">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86909C] text-sm">&yen;</span>
-                  <Input
-                    value={pidAddPrice}
-                    onChange={(e) => setPidAddPrice(e.target.value)}
-                    placeholder="0.00"
-                    className="pl-7"
-                  />
-                </div>
-              </div>
-            )}
 
             {/* SDK版本配置 - 仅在选择SDK类型DSP来源时显示 */}
             {SDK_SOURCE_VALUES.has(pidAddDspSource) && (
