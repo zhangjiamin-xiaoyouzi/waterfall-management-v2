@@ -200,19 +200,18 @@ interface CodePosition {
   scene: string;
   slot: string;
   slotName: string;
-  priceMode: 'bidding' | 'pricing';
   status: 'enabled' | 'disabled';
 }
 
 // Mock代码位数据
 const MOCK_CODE_POSITIONS: CodePosition[] = [
-  { id: '1', codeId: '10001', name: '开屏广告-主', platform: 'Android', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', priceMode: 'bidding', status: 'enabled' },
-  { id: '2', codeId: '10002', name: '插屏广告-高活跃', platform: 'iOS', dspSource: '优量汇', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', priceMode: 'pricing', status: 'enabled' },
-  { id: '3', codeId: '10003', name: '插屏广告', platform: 'Android', dspSource: '穿山甲', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', priceMode: 'bidding', status: 'enabled' },
-  { id: '4', codeId: '10004', name: '信息流广告', platform: 'iOS', dspSource: 'ToBid', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', priceMode: 'bidding', status: 'disabled' },
-  { id: '5', codeId: '10005', name: '开屏广告-备用', platform: 'Android', dspSource: '优量汇', scene: '开屏', slot: '1000', slotName: '美柚--开屏', priceMode: 'pricing', status: 'enabled' },
-  { id: '6', codeId: '10006', name: '信息流-帖子详情', platform: 'iOS', dspSource: '穿山甲', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', priceMode: 'bidding', status: 'enabled' },
-  { id: '7', codeId: '10007', name: '信息流-社区', platform: 'Android', dspSource: '优量汇', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', priceMode: 'bidding', status: 'enabled' },
+  { id: '1', codeId: '10001', name: '开屏广告-主', platform: 'Android', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled' },
+  { id: '2', codeId: '10002', name: '插屏广告-高活跃', platform: 'iOS', dspSource: '优量汇', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled' },
+  { id: '3', codeId: '10003', name: '插屏广告', platform: 'Android', dspSource: '穿山甲', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled' },
+  { id: '4', codeId: '10004', name: '信息流广告', platform: 'iOS', dspSource: 'ToBid', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled' },
+  { id: '5', codeId: '10005', name: '开屏广告-备用', platform: 'Android', dspSource: '优量汇', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled' },
+  { id: '6', codeId: '10006', name: '信息流-帖子详情', platform: 'iOS', dspSource: '穿山甲', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'enabled' },
+  { id: '7', codeId: '10007', name: '信息流-社区', platform: 'Android', dspSource: '优量汇', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'enabled' },
 ];
 
 // 广告场景
@@ -493,11 +492,12 @@ function WaterfallManagementPageContent() {
     dspSource: '',
     scene: '',
     slot: '',
-    name: '',
     codeId: '',
-    priceMode: 'bidding' as 'bidding' | 'pricing',
+    minVersion: '',
+    maxVersion: '',
     enabled: true,
   });
+  const [codeDspSelectOpen, setCodeDspSelectOpen] = useState(false);
 
   // A/B测试推全确认
   const [showRolloutConfirm, setShowRolloutConfirm] = useState(false);
@@ -550,14 +550,8 @@ function WaterfallManagementPageContent() {
 
   // 新增/编辑代码位
   const handleAddCodePosition = useCallback(() => {
-    if (!newCodeForm.codeId.trim() || !newCodeForm.platform || !newCodeForm.scene || !newCodeForm.slot || !newCodeForm.name) return;
+    if (!newCodeForm.codeId.trim() || !newCodeForm.platform || !newCodeForm.scene || !newCodeForm.slot || !newCodeForm.dspSource) return;
     const sceneItem = SCENE_ITEMS.find(s => s.value === newCodeForm.scene);
-    const dspMap: Record<string, string> = {
-      'pangolin': '穿山甲',
-      'yqlh': '优量汇',
-      'tobid': 'ToBid',
-      'gdt': '广点通',
-    };
     const slotMap: Record<string, string> = {
       '1000': '美柚--开屏',
       '2101': '美柚-首页-插屏',
@@ -566,6 +560,7 @@ function WaterfallManagementPageContent() {
       '1601': '美柚-她她圈-帖子详情楼间广告',
       '1602': '美柚-她她圈-帖子详情信息流',
     };
+    const dspName = DSP_SOURCE_NAMES[newCodeForm.dspSource] || newCodeForm.dspSource;
 
     if (editingCodePosition) {
       // 编辑模式
@@ -575,13 +570,12 @@ function WaterfallManagementPageContent() {
             ? {
                 ...cp,
                 codeId: newCodeForm.codeId,
-                name: newCodeForm.name,
+                name: dspName,
                 platform: newCodeForm.platform === 'ios' ? 'iOS' : 'Android',
-                dspSource: dspMap[newCodeForm.dspSource] || newCodeForm.dspSource,
+                dspSource: dspName,
                 scene: sceneItem?.label || newCodeForm.scene,
                 slot: newCodeForm.slot,
                 slotName: slotMap[newCodeForm.slot] || newCodeForm.slot,
-                priceMode: newCodeForm.priceMode,
                 status: newCodeForm.enabled ? 'enabled' : 'disabled',
               }
             : cp
@@ -592,19 +586,18 @@ function WaterfallManagementPageContent() {
       const newCode: CodePosition = {
         id: `cp-${Date.now()}`,
         codeId: newCodeForm.codeId,
-        name: newCodeForm.name,
+        name: dspName,
         platform: newCodeForm.platform === 'ios' ? 'iOS' : 'Android',
-        dspSource: dspMap[newCodeForm.dspSource] || newCodeForm.dspSource,
+        dspSource: dspName,
         scene: sceneItem?.label || newCodeForm.scene,
         slot: newCodeForm.slot,
         slotName: slotMap[newCodeForm.slot] || newCodeForm.slot,
-        priceMode: newCodeForm.priceMode,
         status: newCodeForm.enabled ? 'enabled' : 'disabled',
       };
       setCodePositions((prev) => [...prev, newCode]);
     }
 
-    setNewCodeForm({ platform: '', dspSource: '', scene: '', slot: '', name: '', codeId: '', priceMode: 'bidding', enabled: true });
+    setNewCodeForm({ platform: '', dspSource: '', scene: '', slot: '', codeId: '', minVersion: '', maxVersion: '', enabled: true });
     setEditingCodePosition(null);
     setShowAddCodeDialog(false);
   }, [newCodeForm, editingCodePosition]);
@@ -1663,12 +1656,9 @@ function WaterfallManagementPageContent() {
                                 '美柚-她她圈-帖子详情楼间广告': '1601',
                                 '美柚-她她圈-帖子详情信息流': '1602',
                               };
-                              const dspValueMap: Record<string, string> = {
-                                '穿山甲': 'pangolin',
-                                '优量汇': 'yqlh',
-                                'ToBid': 'tobid',
-                                '广点通': 'gdt',
-                              };
+                              const dspValueMap: Record<string, string> = Object.fromEntries(
+                                Object.entries(DSP_SOURCE_NAMES).map(([k, v]) => [v, k])
+                              );
                               const sceneMap: Record<string, string> = {
                                 '开屏': 'splash',
                                 'Banner': 'banner',
@@ -1678,12 +1668,12 @@ function WaterfallManagementPageContent() {
                               };
                               setNewCodeForm({
                                 platform: platformMap[code.platform] || 'android',
-                                dspSource: dspValueMap[code.dspSource] || 'pangolin',
+                                dspSource: dspValueMap[code.dspSource] || code.dspSource,
                                 scene: sceneMap[code.scene] || 'feed',
-                                slot: slotValueMap[code.slotName] || '',
-                                name: code.name,
+                                slot: slotValueMap[code.slotName] || code.slot,
                                 codeId: code.codeId,
-                                priceMode: code.priceMode,
+                                minVersion: '',
+                                maxVersion: '',
                                 enabled: code.status === 'enabled',
                               });
                               setShowAddCodeDialog(true);
@@ -2123,9 +2113,9 @@ function WaterfallManagementPageContent() {
             dspSource: '',
             scene: '',
             slot: '',
-            name: '',
             codeId: '',
-            priceMode: 'bidding',
+            minVersion: '',
+            maxVersion: '',
             enabled: true,
           });
         }
@@ -2135,85 +2125,46 @@ function WaterfallManagementPageContent() {
             <DialogTitle>{editingCodePosition ? '编辑PID' : '新增PID'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {/* PID */}
+            {/* DSP来源 - 搜索选择 */}
             <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> PID
-              </label>
-              <Input
-                value={newCodeForm.codeId}
-                onChange={(e) => setNewCodeForm({ ...newCodeForm, codeId: e.target.value })}
-                placeholder="请输入PID"
-                className="flex-1"
-              />
-            </div>
-
-            {/* 名称 */}
-            <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> 名称
-              </label>
-              <div className="flex-1 relative">
-                <Input
-                  value={newCodeForm.name}
-                  onChange={(e) => setNewCodeForm({ ...newCodeForm, name: e.target.value.slice(0, 30) })}
-                  placeholder="请输入名称"
-                  className="pr-14"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#86909C]">
-                  {newCodeForm.name.length} / 30
-                </span>
-              </div>
-            </div>
-
-            {/* 系统平台 */}
-            <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> 系统平台
-              </label>
-              <Select
-                value={newCodeForm.platform}
-                onValueChange={(v) => setNewCodeForm({ ...newCodeForm, platform: v })}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="请选择系统平台" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="android">Android</SelectItem>
-                  <SelectItem value="ios">iOS</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* DSP来源 */}
-            <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> DSP来源
-              </label>
-              <Select
-                value={newCodeForm.dspSource}
-                onValueChange={(v) => setNewCodeForm({ ...newCodeForm, dspSource: v })}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="请选择DSP来源" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pangolin">穿山甲</SelectItem>
-                  <SelectItem value="yqlh">优量汇</SelectItem>
-                  <SelectItem value="tobid">ToBid</SelectItem>
-                  <SelectItem value="gdt">广点通</SelectItem>
-                </SelectContent>
-              </Select>
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> DSP来源</label>
+              <Popover open={codeDspSelectOpen} onOpenChange={setCodeDspSelectOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-64 justify-between" role="combobox">
+                    {newCodeForm.dspSource ? (DSP_SOURCE_NAMES[newCodeForm.dspSource] || newCodeForm.dspSource) : '请选择DSP来源'}
+                    <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0">
+                  <Command>
+                    <CommandInput placeholder="搜索DSP来源..." />
+                    <CommandList>
+                      <CommandEmpty>未找到匹配的DSP来源</CommandEmpty>
+                      {DSP_SOURCE_LIST.map((dsp: { value: string; label: string }) => (
+                        <CommandItem
+                          key={dsp.value}
+                          value={dsp.label}
+                          onSelect={(_currentValue: string) => {
+                            setNewCodeForm({ ...newCodeForm, dspSource: dsp.value });
+                            setCodeDspSelectOpen(false);
+                          }}
+                        >
+                          {dsp.label}
+                          {SDK_SOURCE_VALUES.has(dsp.value) && <span className="text-[#86909C] text-xs ml-1">SDK</span>}
+                        </CommandItem>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* 广告场景 */}
             <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> 广告场景
-              </label>
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 广告场景</label>
               <Select
                 value={newCodeForm.scene}
-                onValueChange={(v) => setNewCodeForm({ ...newCodeForm, scene: v })}
+                onValueChange={(v) => setNewCodeForm({ ...newCodeForm, scene: v, slot: '' })}
               >
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="请选择广告场景" />
@@ -2228,11 +2179,26 @@ function WaterfallManagementPageContent() {
               </Select>
             </div>
 
+            {/* 平台 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 平台</label>
+              <Select
+                value={newCodeForm.platform}
+                onValueChange={(v) => setNewCodeForm({ ...newCodeForm, platform: v })}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="请选择平台" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="android">Android</SelectItem>
+                  <SelectItem value="ios">iOS</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* 广告位 */}
             <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> 广告位
-              </label>
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 广告位</label>
               <Select
                 value={newCodeForm.slot}
                 onValueChange={(v) => setNewCodeForm({ ...newCodeForm, slot: v })}
@@ -2243,75 +2209,64 @@ function WaterfallManagementPageContent() {
                 <SelectContent>
                   {newCodeForm.scene === 'feed' ? (
                     <>
-                      <SelectItem value="1120">首页大社区feeds流</SelectItem>
-                      <SelectItem value="1601">美柚-她她圈-帖子详情楼间广告</SelectItem>
-                      <SelectItem value="1602">美柚-她她圈-帖子详情信息流</SelectItem>
+                      <SelectItem value="1120">1120 - 首页大社区feeds流</SelectItem>
+                      <SelectItem value="1601">1601 - 美柚-她她圈-帖子详情楼间广告</SelectItem>
+                      <SelectItem value="1602">1602 - 美柚-她她圈-帖子详情信息流</SelectItem>
                     </>
                   ) : newCodeForm.scene === 'interstitial' ? (
                     <>
-                      <SelectItem value="2101">美柚-首页-插屏</SelectItem>
-                      <SelectItem value="2514">爱爱记录-记录完成插屏</SelectItem>
+                      <SelectItem value="2101">2101 - 美柚-首页-插屏</SelectItem>
+                      <SelectItem value="2514">2514 - 爱爱记录-记录完成插屏</SelectItem>
                     </>
+                  ) : newCodeForm.scene === 'splash' ? (
+                    <SelectItem value="1000">1000 - 美柚--开屏</SelectItem>
                   ) : (
-                    <>
-                      <SelectItem value="1000">美柚--开屏</SelectItem>
-                    </>
+                    <SelectItem value="" disabled>请先选择广告场景</SelectItem>
                   )}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* 价格模式 */}
+            {/* PID */}
             <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> 价格模式
-              </label>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      newCodeForm.priceMode === 'bidding'
-                        ? 'border-[#2563EB] bg-[#2563EB]'
-                        : 'border-[#86909C]'
-                    }`}
-                    onClick={() => setNewCodeForm({ ...newCodeForm, priceMode: 'bidding' })}
-                  >
-                    {newCodeForm.priceMode === 'bidding' && (
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    )}
-                  </div>
-                  <span className="text-sm text-[#1D2129]">竞价</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      newCodeForm.priceMode === 'pricing'
-                        ? 'border-[#2563EB] bg-[#2563EB]'
-                        : 'border-[#86909C]'
-                    }`}
-                    onClick={() => setNewCodeForm({ ...newCodeForm, priceMode: 'pricing' })}
-                  >
-                    {newCodeForm.priceMode === 'pricing' && (
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    )}
-                  </div>
-                  <span className="text-sm text-[#1D2129]">定价</span>
-                </label>
-              </div>
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> PID</label>
+              <Input
+                value={newCodeForm.codeId}
+                onChange={(e) => setNewCodeForm({ ...newCodeForm, codeId: e.target.value })}
+                placeholder="请输入PID"
+                className="w-64"
+              />
             </div>
+
+            {/* SDK版本配置 - 仅在选择SDK类型DSP来源时显示 */}
+            {SDK_SOURCE_VALUES.has(newCodeForm.dspSource) && (
+              <div className="border border-[#E5E6EB] rounded-lg p-4 space-y-3">
+                <div className="text-xs text-[#86909C] font-medium">SDK版本配置 <span className="text-[#FF4D88]">*</span></div>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <label className="text-xs text-[#4E5969] mb-1 block">最小版本</label>
+                    <Input
+                      value={newCodeForm.minVersion || ''}
+                      onChange={(e) => setNewCodeForm({ ...newCodeForm, minVersion: e.target.value })}
+                      placeholder="如 9.01.0"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-[#4E5969] mb-1 block">最大版本</label>
+                    <Input
+                      value={newCodeForm.maxVersion || ''}
+                      onChange={(e) => setNewCodeForm({ ...newCodeForm, maxVersion: e.target.value })}
+                      placeholder="如 9.01.0"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 状态 */}
             <div className="flex items-center">
-              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                状态
-              </label>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={newCodeForm.enabled}
-                  onCheckedChange={(checked) => setNewCodeForm({ ...newCodeForm, enabled: checked })}
-                />
-                <span className="text-sm text-[#1D2129]">{newCodeForm.enabled ? '启用' : '禁用'}</span>
-              </div>
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">状态</label>
+              <Switch checked={newCodeForm.enabled} onCheckedChange={(checked) => setNewCodeForm({ ...newCodeForm, enabled: checked })} />
             </div>
           </div>
           <DialogFooter>
@@ -2319,10 +2274,10 @@ function WaterfallManagementPageContent() {
               取消
             </Button>
             <Button
-              className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
+              className="bg-[#FF4D88] hover:bg-[#FF6A9E] text-white"
               onClick={handleAddCodePosition}
             >
-              提交
+              {editingCodePosition ? '保存' : '提交'}
             </Button>
           </DialogFooter>
         </DialogContent>
