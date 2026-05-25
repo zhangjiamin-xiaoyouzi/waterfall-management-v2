@@ -1,8 +1,25 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TimeSlotPicker } from '@/components/time-slot-picker';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   Tv,
   RectangleHorizontal,
@@ -27,6 +44,10 @@ import {
   ChevronLeft,
   ChevronLast,
   TrendingUp,
+  GripVertical,
+  Settings2,
+  ListOrdered,
+  Zap,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -260,7 +281,7 @@ export default function WaterfallManagementPage() {
 
 function WaterfallManagementPageContent() {
   // 页面切换状态
-  const [currentPage, setCurrentPage] = useState<'waterfall' | 'codePosition'>('waterfall');
+  const [currentPage, setCurrentPage] = useState<'waterfall' | 'codePosition' | 'pidManagement'>('waterfall');
   
   // 状态管理
   const [activeScene, setActiveScene] = useState<AdScene>('splash');
@@ -483,6 +504,19 @@ function WaterfallManagementPageContent() {
   const [pageSize, setPageSize] = useState(10);
   const totalCodeCount = codePositions.length;
   const totalPages = Math.ceil(totalCodeCount / pageSize);
+
+  // 分组管理弹窗状态
+  const [showGroupManageDialog, setShowGroupManageDialog] = useState(false);
+  const [groupManageSelected, setGroupManageSelected] = useState<Set<string>>(new Set());
+
+  // 批量操作弹窗状态
+  const [showBatchDialog, setShowBatchDialog] = useState(false);
+  const [batchOperation, setBatchOperation] = useState<'enable' | 'disable' | 'setPrice'>('enable');
+  const [batchPrice, setBatchPrice] = useState('');
+
+  // PID管理页面状态
+  const [pidPageScene, setPidPageScene] = useState<AdScene | 'all'>('all');
+  const [pidPagePlatform, setPidPagePlatform] = useState<'Android' | 'iOS' | 'all'>('all');
 
   // 代码位分页数据
   const paginatedCodePositions = codePositions.slice(
@@ -1015,6 +1049,17 @@ function WaterfallManagementPageContent() {
                     >
                       <span>流量分组管理</span>
                     </button>
+                    {/* PID管理 */}
+                    <button
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm border-r-2 ${
+                        currentPage === 'pidManagement'
+                          ? 'bg-[#FFF7FA] text-[#1D2129] border-[#FF4D88]'
+                          : 'text-[#1D2129] border-transparent hover:bg-[#F9FAFB]'
+                      }`}
+                      onClick={() => setCurrentPage('pidManagement')}
+                    >
+                      <span>PID管理</span>
+                    </button>
                     {/* 代码位ID管理 - 暂时隐藏 */}
                     {/* <button
                       className={`w-full flex items-center justify-between px-4 py-2.5 text-sm border-r-2 ${
@@ -1049,12 +1094,13 @@ function WaterfallManagementPageContent() {
             <span className="text-[#86909C]">ADX流量工具</span>
             <ChevronRightIcon className="w-4 h-4 text-[#C9CDD4]" />
             <span className={`font-medium ${currentPage === 'codePosition' ? 'text-[#1D2129]' : 'text-[#1D2129]'}`}>
-              {currentPage === 'waterfall' ? '流量分组管理' : '代码位ID管理'}
+              {currentPage === 'waterfall' ? '流量分组管理' : currentPage === 'pidManagement' ? 'PID管理' : '代码位ID管理'}
             </span>
           </div>
         </header>
 
-        {/* 广告场景与平台筛选 */}
+        {/* 广告场景与平台筛选 - 仅瀑布流管理页面显示 */}
+        {currentPage === 'waterfall' && (
         <div className="bg-white border-b border-[#E5E6EB] px-6 py-3">
           <div className="flex items-center gap-4">
             {/* 广告场景 - 可搜索 */}
@@ -1109,6 +1155,7 @@ function WaterfallManagementPageContent() {
             </div>
           </div>
         </div>
+        )}
 
         <div className="flex-1 overflow-auto p-6">
           {currentPage === 'waterfall' ? (
@@ -1125,6 +1172,18 @@ function WaterfallManagementPageContent() {
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   添加分组
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-[#E5E6EB] text-[#1D2129] hover:bg-[#F9FAFB]"
+                  onClick={() => {
+                    setGroupManageSelected(new Set());
+                    setShowGroupManageDialog(true);
+                  }}
+                >
+                  <ListOrdered className="w-4 h-4 mr-1" />
+                  分组管理
                 </Button>
               </div>
 
@@ -1381,6 +1440,20 @@ function WaterfallManagementPageContent() {
                   <Plus className="w-4 h-4 mr-1" />
                   添加PID
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`border-[#E5E6EB] text-[#1D2129] hover:bg-[#F9FAFB] ${selectedSources.size > 0 ? 'border-[#FF4D88] text-[#FF4D88]' : ''}`}
+                  onClick={() => {
+                    if (selectedSources.size === 0) return;
+                    setBatchOperation('enable');
+                    setBatchPrice('');
+                    setShowBatchDialog(true);
+                  }}
+                >
+                  <Zap className="w-4 h-4 mr-1" />
+                  批量操作{selectedSources.size > 0 ? `(${selectedSources.size})` : ''}
+                </Button>
               </div>
             </div>
 
@@ -1441,6 +1514,160 @@ function WaterfallManagementPageContent() {
 
           </div>
 
+          </React.Fragment>
+          ) : currentPage === 'pidManagement' ? (
+          /* ==================== PID管理页面 ==================== */
+          <React.Fragment>
+            {/* 页面标题与筛选 */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-[#1D2129]">PID与DSP来源对应关系</h2>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#86909C]">广告场景：</span>
+                  <Select value={pidPageScene} onValueChange={(v) => setPidPageScene(v as AdScene | 'all')}>
+                    <SelectTrigger className="w-28 h-8 border-[#E5E6EB]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部</SelectItem>
+                      {SCENE_ITEMS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#86909C]">平台：</span>
+                  <Select value={pidPagePlatform} onValueChange={(v) => setPidPagePlatform(v as 'Android' | 'iOS' | 'all')}>
+                    <SelectTrigger className="w-28 h-8 border-[#E5E6EB]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部</SelectItem>
+                      <SelectItem value="Android">安卓</SelectItem>
+                      <SelectItem value="iOS">iOS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* PID列表 - 按场景>平台>广告位分组展示 */}
+            {(() => {
+              const allPids = adGroups.flatMap(group =>
+                group.adSources.map(source => ({
+                  pid: source.codeId || '-',
+                  dspSource: source.dspSources?.map(d => DSP_SOURCE_NAMES[d] || d).join(', ') || source.name,
+                  scene: group.scene,
+                  platform: group.platform,
+                  adSlots: group.adSlots,
+                  status: source.status,
+                  pricingType: source.pricingType,
+                  price: source.price,
+                  sourceId: source.id,
+                  groupId: group.id,
+                  groupName: group.name,
+                  sourceName: source.name,
+                }))
+              );
+
+              const filteredPids = allPids.filter(p => {
+                if (pidPageScene !== 'all' && p.scene !== pidPageScene) return false;
+                if (pidPagePlatform !== 'all' && p.platform !== pidPagePlatform) return false;
+                return true;
+              });
+
+              const grouped = new Map<string, Map<string, Map<string, typeof filteredPids>>>();
+              filteredPids.forEach(p => {
+                const sceneLabel = SCENE_ITEMS.find(s => s.value === p.scene)?.label || p.scene;
+                if (!grouped.has(sceneLabel)) grouped.set(sceneLabel, new Map());
+                const platformMap = grouped.get(sceneLabel)!;
+                if (!platformMap.has(p.platform)) platformMap.set(p.platform, new Map());
+                const slotMap = platformMap.get(p.platform)!;
+                p.adSlots.forEach(slot => {
+                  const slotName = SLOT_NAME_MAP[slot] || slot;
+                  const key = `${slot} - ${slotName}`;
+                  if (!slotMap.has(key)) slotMap.set(key, []);
+                  slotMap.get(key)!.push(p);
+                });
+              });
+
+              if (filteredPids.length === 0) {
+                return (
+                  <div className="bg-white rounded-lg border border-[#E5E6EB] p-12 text-center">
+                    <div className="text-[#86909C]">暂无PID数据</div>
+                  </div>
+                );
+              }
+
+              return Array.from(grouped.entries()).map(([sceneLabel, platformMap]) => (
+                <div key={sceneLabel} className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-base font-medium text-[#1D2129]">{sceneLabel}</span>
+                  </div>
+                  {Array.from(platformMap.entries()).map(([platform, slotMap]) => (
+                    <div key={platform} className="ml-4 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`inline-block w-1.5 h-1.5 rounded-full ${platform === 'Android' ? 'bg-[#2563EB]' : 'bg-[#7C3AED]'}`} />
+                        <span className="text-sm font-medium text-[#4E5969]">{platform === 'Android' ? '安卓' : 'iOS'}</span>
+                      </div>
+                      {Array.from(slotMap.entries()).map(([slotKey, pids]) => (
+                        <div key={slotKey} className="ml-4 mb-3">
+                          <div className="text-xs text-[#86909C] mb-1.5">{slotKey}</div>
+                          <div className="bg-white rounded-lg border border-[#E5E6EB]">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-[#F7F8FA]">
+                                  <TableHead className="text-[#86909C] font-medium">PID</TableHead>
+                                  <TableHead className="text-[#86909C] font-medium">DSP来源</TableHead>
+                                  <TableHead className="text-[#86909C] font-medium">所属分组</TableHead>
+                                  <TableHead className="text-[#86909C] font-medium">定价方式</TableHead>
+                                  <TableHead className="text-[#86909C] font-medium">价格</TableHead>
+                                  <TableHead className="text-[#86909C] font-medium">状态</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {pids.map((p, idx) => (
+                                  <TableRow key={`${p.sourceId}-${idx}`} className="hover:bg-[#F9FAFB]">
+                                    <TableCell className="text-[#1D2129] font-mono text-sm">{p.pid}</TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: getSourceColor(p.sourceName).dot }} />
+                                        <span className="text-sm text-[#1D2129]">{p.dspSource}</span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-sm text-[#1D2129]">{p.groupName}</TableCell>
+                                    <TableCell>
+                                      {p.pricingType === 'bidding' ? (
+                                        <Badge className="bg-[#EFF6FF] text-[#2563EB] hover:bg-[#EFF6FF]">竞价</Badge>
+                                      ) : (
+                                        <Badge className="bg-[#F0FDF4] text-[#16A34A] hover:bg-[#F0FDF4]">定价</Badge>
+                                      )}
+                                    </TableCell>
+                                    <TableCell className="text-sm text-[#1D2129]">
+                                      {p.pricingType === 'bidding' ? <span className="text-[#86909C]">-</span> : `¥${p.price.toFixed(2)}`}
+                                    </TableCell>
+                                    <TableCell>
+                                      <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
+                                        p.status === 'enabled'
+                                          ? 'bg-[#E8F5E9] text-[#2E7D32]'
+                                          : 'bg-[#FFEBEE] text-[#C62828]'
+                                      }`}>
+                                        {p.status === 'enabled' ? '启用' : '停用'}
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ));
+            })()}
           </React.Fragment>
           ) : (
           /* ==================== 代码位ID管理页面 ==================== */
@@ -2736,7 +2963,7 @@ function WaterfallManagementPageContent() {
       <AlertDialog open={showRolloutConfirm} onOpenChange={setShowRolloutConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认推全"{rolloutTargetGroup === 'A' ? 'A组流量' : 'B组流量'}"？</AlertDialogTitle>
+            <AlertDialogTitle>确认推全&ldquo;{rolloutTargetGroup === 'A' ? 'A组流量' : 'B组流量'}&rdquo;？</AlertDialogTitle>
             <AlertDialogDescription>
               成功后实验将关闭；所有当前流量分组用户都使用{rolloutTargetGroup === 'A' ? 'A' : 'B'}组配置的价格
             </AlertDialogDescription>
@@ -2747,6 +2974,357 @@ function WaterfallManagementPageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 分组管理弹窗 - 拖拽排序 + 批量关闭 */}
+      <Dialog open={showGroupManageDialog} onOpenChange={setShowGroupManageDialog}>
+        <DialogContent className="sm:max-w-[640px] max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">分组管理</DialogTitle>
+          </DialogHeader>
+          <div className="text-xs text-[#86909C] mb-2">
+            当前场景：{SCENE_ITEMS.find(s => s.value === activeScene)?.label || activeScene} / 平台：{selectedPlatform === 'Android' ? '安卓' : 'iOS'}
+            <span className="ml-3">拖拽调整分组优先级，数字越小优先级越高</span>
+          </div>
+          <GroupManageList
+            groups={filteredAdGroups}
+            selectedIds={groupManageSelected}
+            onToggleSelect={(id) => {
+              setGroupManageSelected(prev => {
+                const newSet = new Set(prev);
+                if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
+                return newSet;
+              });
+            }}
+            onToggleSelectAll={() => {
+              const nonDefaultIds = filteredAdGroups.filter(g => g.priority < 999).map(g => g.id);
+              if (groupManageSelected.size === nonDefaultIds.length) {
+                setGroupManageSelected(new Set());
+              } else {
+                setGroupManageSelected(new Set(nonDefaultIds));
+              }
+            }}
+            onReorder={(reorderedGroups) => {
+              // 更新分组优先级
+              const updatedGroups = reorderedGroups.map((g, idx) => ({
+                ...g,
+                priority: idx + 1,
+              }));
+              // 合并默认分组（未参与排序的）
+              const defaultGroups = filteredAdGroups.filter(g => g.priority >= 999);
+              const allUpdated = [...updatedGroups, ...defaultGroups];
+              setAdGroups(prev => {
+                const otherGroups = prev.filter(g => g.scene !== activeScene || g.platform !== selectedPlatform);
+                return [...otherGroups, ...allUpdated];
+              });
+            }}
+            onBatchClose={() => {
+              if (groupManageSelected.size === 0) return;
+              setAdGroups(prev => prev.map(g =>
+                groupManageSelected.has(g.id) ? { ...g, status: 'disabled' as const } : g
+              ));
+              setGroupManageSelected(new Set());
+            }}
+            onBatchOpen={() => {
+              if (groupManageSelected.size === 0) return;
+              setAdGroups(prev => prev.map(g =>
+                groupManageSelected.has(g.id) ? { ...g, status: 'enabled' as const } : g
+              ));
+              setGroupManageSelected(new Set());
+            }}
+            onToggleGroupStatus={(groupId) => {
+              setAdGroups(prev => prev.map(g =>
+                g.id === groupId ? { ...g, status: g.status === 'enabled' ? 'disabled' as const : 'enabled' as const } : g
+              ));
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* 批量操作弹窗 */}
+      <Dialog open={showBatchDialog} onOpenChange={setShowBatchDialog}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">批量操作</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="text-sm text-[#86909C]">
+              已选择 <span className="text-[#FF4D88] font-medium">{selectedSources.size}</span> 个DSP来源
+            </div>
+
+            {/* 操作类型选择 */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#1D2129]">操作类型</label>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-[#E5E6EB] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      batchOperation === 'enable' ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#86909C]'
+                    }`}
+                    onClick={() => setBatchOperation('enable')}
+                  >
+                    {batchOperation === 'enable' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="text-sm text-[#1D2129]">批量启用</span>
+                  <span className="text-xs text-[#86909C] ml-auto">将选中的DSP来源设置为启用状态</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-[#E5E6EB] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      batchOperation === 'disable' ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#86909C]'
+                    }`}
+                    onClick={() => setBatchOperation('disable')}
+                  >
+                    {batchOperation === 'disable' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="text-sm text-[#1D2129]">批量停用</span>
+                  <span className="text-xs text-[#86909C] ml-auto">将选中的DSP来源设置为停用状态</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-[#E5E6EB] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      batchOperation === 'setPrice' ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#86909C]'
+                    }`}
+                    onClick={() => setBatchOperation('setPrice')}
+                  >
+                    {batchOperation === 'setPrice' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="text-sm text-[#1D2129]">批量设置价格</span>
+                  <span className="text-xs text-[#86909C] ml-auto">将选中的DSP来源设置为指定价格</span>
+                </label>
+              </div>
+            </div>
+
+            {/* 价格输入 - 仅批量设置价格时显示 */}
+            {batchOperation === 'setPrice' && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-[#1D2129] shrink-0">价格</label>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#86909C]">¥</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={batchPrice}
+                    onChange={(e) => setBatchPrice(e.target.value)}
+                    placeholder="请输入价格"
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBatchDialog(false)}>
+              取消
+            </Button>
+            <Button
+              className="bg-[#FF4D88] hover:bg-[#FF6A9E] text-white"
+              onClick={() => {
+                if (batchOperation === 'enable') {
+                  setAdGroups(prev => prev.map(g => ({
+                    ...g,
+                    adSources: g.adSources.map(s =>
+                      selectedSources.has(s.id) ? { ...s, status: 'enabled' as const } : s
+                    ),
+                  })));
+                } else if (batchOperation === 'disable') {
+                  setAdGroups(prev => prev.map(g => ({
+                    ...g,
+                    adSources: g.adSources.map(s =>
+                      selectedSources.has(s.id) ? { ...s, status: 'disabled' as const } : s
+                    ),
+                  })));
+                } else if (batchOperation === 'setPrice') {
+                  const price = parseFloat(batchPrice);
+                  if (isNaN(price) || price < 0) return;
+                  setAdGroups(prev => prev.map(g => ({
+                    ...g,
+                    adSources: g.adSources.map(s =>
+                      selectedSources.has(s.id) ? { ...s, price } : s
+                    ),
+                  })));
+                }
+                setSelectedSources(new Set());
+                setShowBatchDialog(false);
+              }}
+            >
+              确认执行
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// 分组管理拖拽排序列表组件
+interface GroupManageListProps {
+  groups: AdGroup[];
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onToggleSelectAll: () => void;
+  onReorder: (groups: AdGroup[]) => void;
+  onBatchClose: () => void;
+  onBatchOpen: () => void;
+  onToggleGroupStatus: (id: string) => void;
+}
+
+function SortableGroupItem({ group, isSelected, onToggleSelect, onToggleStatus }: {
+  group: AdGroup;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  onToggleStatus: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: group.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  if (group.priority >= 999) {
+    // 默认分组不可拖拽，固定在底部
+    return (
+      <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[#E5E6EB] bg-[#F9FAFB]">
+        <span className="text-[#86909C] cursor-not-allowed"><GripVertical className="w-4 h-4" /></span>
+        <Checkbox checked={false} disabled className="border-[#E5E6EB]" />
+        <span className="text-sm text-[#1D2129] font-medium flex-1">{group.name}</span>
+        <span className="text-xs text-[#86909C]">默认分组</span>
+        <Switch
+          checked={group.status === 'enabled'}
+          onCheckedChange={onToggleStatus}
+          className="data-[state=checked]:bg-[#2563EB]"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[#E5E6EB] bg-white hover:bg-[#F9FAFB]">
+      <span className="cursor-grab active:cursor-grabbing text-[#86909C] hover:text-[#1D2129]" {...attributes} {...listeners}>
+        <GripVertical className="w-4 h-4" />
+      </span>
+      <Checkbox
+        checked={isSelected}
+        onCheckedChange={onToggleSelect}
+        className="border-[#E5E6EB] data-[state=checked]:bg-[#FF4D88] data-[state=checked]:border-[#FF4D88]"
+      />
+      <span className="text-sm font-medium text-[#FF4D88] w-6">P{group.priority}</span>
+      <span className="text-sm text-[#1D2129] flex-1">{group.name}</span>
+      <div className="flex items-center gap-2">
+        {group.adSources.length > 0 && (
+          <span className="text-xs text-[#86909C]">{group.adSources.length}个DSP来源</span>
+        )}
+        {group.hasABTest && (
+          <span className="px-1 py-0.5 text-[10px] font-bold bg-[#FF4D88] text-white rounded">AB</span>
+        )}
+        <Switch
+          checked={group.status === 'enabled'}
+          onCheckedChange={onToggleStatus}
+          className="data-[state=checked]:bg-[#2563EB]"
+        />
+      </div>
+    </div>
+  );
+}
+
+function GroupManageList({ groups, selectedIds, onToggleSelect, onToggleSelectAll, onReorder, onBatchClose, onBatchOpen, onToggleGroupStatus }: GroupManageListProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // 分离默认分组和非默认分组，非默认分组参与排序
+  const nonDefaultGroups = groups.filter(g => g.priority < 999).sort((a, b) => a.priority - b.priority);
+  const defaultGroups = groups.filter(g => g.priority >= 999);
+  const allNonDefaultSelected = nonDefaultGroups.length > 0 && nonDefaultGroups.every(g => selectedIds.has(g.id));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = nonDefaultGroups.findIndex(g => g.id === active.id);
+    const newIndex = nonDefaultGroups.findIndex(g => g.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(nonDefaultGroups, oldIndex, newIndex);
+    onReorder(reordered);
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto space-y-3">
+      {/* 批量操作栏 */}
+      <div className="flex items-center justify-between px-1 py-2">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={allNonDefaultSelected}
+            onCheckedChange={onToggleSelectAll}
+            className="border-[#E5E6EB] data-[state=checked]:bg-[#FF4D88] data-[state=checked]:border-[#FF4D88]"
+          />
+          <span className="text-xs text-[#86909C]">
+            {selectedIds.size > 0 ? `已选 ${selectedIds.size} 个` : '全选非默认分组'}
+          </span>
+        </div>
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-7 text-xs border-[#16A34A] text-[#16A34A] hover:bg-[#F0FDF4]" onClick={onBatchOpen}>
+              批量启用
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-xs border-[#EF4444] text-[#EF4444] hover:bg-[#FEF2F2]" onClick={onBatchClose}>
+              批量关闭
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* 可拖拽排序的非默认分组 */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={nonDefaultGroups.map(g => g.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-2">
+            {nonDefaultGroups.map(group => (
+              <SortableGroupItem
+                key={group.id}
+                group={group}
+                isSelected={selectedIds.has(group.id)}
+                onToggleSelect={() => onToggleSelect(group.id)}
+                onToggleStatus={() => onToggleGroupStatus(group.id)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+
+      {/* 默认分组（固定在底部，不参与排序） */}
+      {defaultGroups.map(group => (
+        <SortableGroupItem
+          key={group.id}
+          group={group}
+          isSelected={false}
+          onToggleSelect={() => {}}
+          onToggleStatus={() => onToggleGroupStatus(group.id)}
+        />
+      ))}
+
+      {nonDefaultGroups.length === 0 && defaultGroups.length === 0 && (
+        <div className="text-center py-8 text-[#86909C]">当前场景和平台下暂无分组</div>
+      )}
     </div>
   );
 }
