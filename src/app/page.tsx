@@ -201,17 +201,19 @@ interface CodePosition {
   slot: string;
   slotName: string;
   status: 'enabled' | 'disabled';
+  minVersion?: string;
+  maxVersion?: string;
 }
 
 // Mock代码位数据
 const MOCK_CODE_POSITIONS: CodePosition[] = [
-  { id: '1', codeId: '10001', name: '开屏广告-主', platform: 'Android', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled' },
-  { id: '2', codeId: '10002', name: '插屏广告-高活跃', platform: 'iOS', dspSource: '优量汇', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled' },
-  { id: '3', codeId: '10003', name: '插屏广告', platform: 'Android', dspSource: '穿山甲', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled' },
+  { id: '1', codeId: '10001', name: '开屏广告-主', platform: 'Android', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '' },
+  { id: '2', codeId: '10002', name: '插屏广告-高活跃', platform: 'iOS', dspSource: '优量汇', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '' },
+  { id: '3', codeId: '10003', name: '插屏广告', platform: 'Android', dspSource: '穿山甲', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '9.50.0' },
   { id: '4', codeId: '10004', name: '信息流广告', platform: 'iOS', dspSource: 'ToBid', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled' },
-  { id: '5', codeId: '10005', name: '开屏广告-备用', platform: 'Android', dspSource: '优量汇', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled' },
-  { id: '6', codeId: '10006', name: '信息流-帖子详情', platform: 'iOS', dspSource: '穿山甲', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'enabled' },
-  { id: '7', codeId: '10007', name: '信息流-社区', platform: 'Android', dspSource: '优量汇', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'enabled' },
+  { id: '5', codeId: '10005', name: '开屏广告-备用', platform: 'Android', dspSource: '优量汇', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '' },
+  { id: '6', codeId: '10006', name: '信息流-帖子详情', platform: 'iOS', dspSource: '穿山甲', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'enabled', minVersion: '9.02.0', maxVersion: '' },
+  { id: '7', codeId: '10007', name: '信息流-社区', platform: 'Android', dspSource: '优量汇', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'enabled', minVersion: '8.53.0', maxVersion: '' },
 ];
 
 // 广告场景
@@ -894,13 +896,13 @@ function WaterfallManagementPageContent() {
       return;
     }
     if (!newSourceCodeId.trim()) {
-      setSourceError('请输入PID');
+      setSourceError('该DSP来源在PID管理中无对应PID，请先在PID管理中添加');
       return;
     }
     // SDK类型DSP来源时，版本配置必填
     if (SDK_SOURCE_VALUES.has(newSourceName)) {
       if (!newSourceMinVersion.trim() && !newSourceMaxVersion.trim()) {
-        setSourceError('SDK类型DSP来源时，请填写最小版本或最大版本');
+        setSourceError('该DSP来源在PID管理中无版本配置，请先在PID管理中配置');
         return;
       }
     }
@@ -2313,6 +2315,23 @@ function WaterfallManagementPageContent() {
                             const _ = currentValue;
                             setNewSourceName(dsp.value);
                             setDspSelectOpen(false);
+                            // 从PID管理自动带入PID和SDK版本配置
+                            const sceneLabel = activeScene === 'splash' ? '开屏' : activeScene === 'interstitial' ? '插屏' : activeScene === 'search' ? '搜索' : '信息流';
+                            const platformLabel = selectedPlatform;
+                            const matchedCode = codePositions.find(cp =>
+                              cp.dspSource === (DSP_SOURCE_NAMES[dsp.value] || dsp.value) &&
+                              cp.scene === sceneLabel &&
+                              cp.platform === platformLabel
+                            );
+                            if (matchedCode) {
+                              setNewSourceCodeId(matchedCode.codeId);
+                              setNewSourceMinVersion(matchedCode.minVersion || '');
+                              setNewSourceMaxVersion(matchedCode.maxVersion || '');
+                            } else {
+                              setNewSourceCodeId('');
+                              setNewSourceMinVersion('');
+                              setNewSourceMaxVersion('');
+                            }
                           }}
                         >
                           {dsp.label}
@@ -2362,39 +2381,38 @@ function WaterfallManagementPageContent() {
                 </div>
             </div>
 
-            {/* PID - 必填，手动输入 */}
+            {/* PID - 从PID管理自动带入 */}
             <div className="flex items-center">
               <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> PID</label>
-              <Input
-                value={newSourceCodeId}
-                onChange={(e) => setNewSourceCodeId(e.target.value)}
-                placeholder="请输入PID"
-                className="w-64"
-              />
+              {newSourceCodeId ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#1D2129] font-medium">{newSourceCodeId}</span>
+                  <span className="text-xs text-[#86909C]">（从PID管理自动带入）</span>
+                </div>
+              ) : (
+                <span className="text-sm text-[#86909C]">{newSourceName ? '未在PID管理中找到对应PID' : '请先选择DSP来源'}</span>
+              )}
             </div>
 
-            {/* SDK版本配置 - 仅在选择SDK类型DSP来源时显示 */}
+            {/* SDK版本配置 - 从PID管理自动带入 */}
             {SDK_SOURCE_VALUES.has(newSourceName) && (
               <div className="border border-[#E5E6EB] rounded-lg p-4 space-y-3">
                 <div className="text-xs text-[#86909C] font-medium">SDK版本配置 <span className="text-[#FF4D88]">*</span></div>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <label className="text-xs text-[#4E5969] mb-1 block">最小版本</label>
-                    <Input
-                      value={newSourceMinVersion}
-                      onChange={(e) => setNewSourceMinVersion(e.target.value)}
-                      placeholder="如 9.01.0"
-                    />
+                {(newSourceMinVersion || newSourceMaxVersion) ? (
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="text-xs text-[#4E5969] mb-1 block">最小版本</label>
+                      <span className="text-sm text-[#1D2129]">{newSourceMinVersion || '-'}</span>
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs text-[#4E5969] mb-1 block">最大版本</label>
+                      <span className="text-sm text-[#1D2129]">{newSourceMaxVersion || '-'}</span>
+                    </div>
+                    <span className="text-xs text-[#86909C]">（从PID管理自动带入）</span>
                   </div>
-                  <div className="flex-1">
-                    <label className="text-xs text-[#4E5969] mb-1 block">最大版本</label>
-                    <Input
-                      value={newSourceMaxVersion}
-                      onChange={(e) => setNewSourceMaxVersion(e.target.value)}
-                      placeholder="如 9.01.0"
-                    />
-                  </div>
-                </div>
+                ) : (
+                  <span className="text-sm text-[#86909C]">{newSourceName ? '未在PID管理中找到版本配置' : '请先选择DSP来源'}</span>
+                )}
               </div>
             )}
 
