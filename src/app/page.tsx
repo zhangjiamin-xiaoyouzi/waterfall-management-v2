@@ -48,6 +48,7 @@ import {
   Settings2,
   ListOrdered,
   Zap,
+  ExternalLink,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -1621,21 +1622,41 @@ function WaterfallManagementPageContent() {
                       </TableCell>
                       <TableCell className="text-[#1D2129]">{code.scene}</TableCell>
                       <TableCell className="text-[#1D2129]">{code.slotName}</TableCell>
-                      <TableCell className="text-[#1D2129]">
+                      <TableCell>
                         {(() => {
-                          const boundGroups = adGroups.filter(group => 
-                            group.adSlots.includes(code.codeId)
+                          const boundGroups = adGroups.filter(group =>
+                            group.scene === code.scene && group.platforms.includes(code.platform) &&
+                            group.adSources.some(src => src.codeId === code.codeId)
                           );
                           if (boundGroups.length === 0) {
                             return <span className="text-[#86909C]">-</span>;
                           }
+                          const sceneMap: Record<string, string> = {
+                            '\u5F00\u5C4F': 'splash', 'Banner': 'banner', '\u63D2\u5C4F': 'interstitial',
+                            '\u4FE1\u606F\u6D41': 'feed', '\u539F\u751F': 'native',
+                          };
+                          const platformMap: Record<string, string> = {
+                            'Android': 'android', 'iOS': 'ios',
+                          };
                           return (
                             <div className="flex flex-wrap gap-1">
-                              {boundGroups.map((group, index) => (
-                                <span key={group.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-[#FFF7ED] text-[#EA580C]">
-                                  {group.priority === Infinity ? '默认' : `${group.priority} - ${group.name}`}
-                                </span>
-                              ))}
+                              {boundGroups.map((group) => {
+                                const sceneVal = sceneMap[code.scene] || 'splash';
+                                const platVal = platformMap[code.platform] || 'android';
+                                const url = `/?scene=${sceneVal}&platform=${platVal}&group=${group.id}`;
+                                return (
+                                  <a
+                                    key={group.id}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#FFF1F0] text-[#FF4D88] hover:bg-[#FFE4E8] cursor-pointer transition-colors"
+                                  >
+                                    {group.priority === Infinity ? '\u9ED8\u8BA4' : group.name}
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                );
+                              })}
                             </div>
                           );
                         })()}
