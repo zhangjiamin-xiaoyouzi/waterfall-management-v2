@@ -1,0 +1,759 @@
+{
+  "groups": [
+    {
+      "id": "splash-android-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "1000"
+      ],
+      "scene": "splash",
+      "platform": "Android",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": [
+        {
+          "id": "sp-and-s1",
+          "name": "穿山甲-开屏",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 16.33,
+          "estimatedRevenue": 11234.56,
+          "ecpm": 14.56,
+          "thousandRequestValue": 0.56,
+          "requests": 120000,
+          "responses": 60000,
+          "responseRate": 50,
+          "bidWins": 20000,
+          "bidWinRate": 50,
+          "revenuePerThousand": 0.05,
+          "impressions": 26462,
+          "winImpressionRate": 100,
+          "clicks": 1058,
+          "ctr": 4,
+          "cpc": 0.96,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10001",
+          "dspSources": [
+            "pangle"
+          ]
+        },
+        {
+          "id": "sp-and-s2",
+          "name": "优量汇-开屏",
+          "status": "enabled",
+          "pricingType": "CPM",
+          "price": 16.32,
+          "estimatedRevenue": 11234.56,
+          "ecpm": 14.56,
+          "thousandRequestValue": 0.56,
+          "requests": 120000,
+          "responses": 60000,
+          "responseRate": 50,
+          "bidWins": 20000,
+          "bidWinRate": 50,
+          "revenuePerThousand": 0.05,
+          "impressions": 26462,
+          "winImpressionRate": 100,
+          "clicks": 1058,
+          "ctr": 4,
+          "cpc": 0.96,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10002",
+          "dspSources": [
+            "ylh"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "splash-android-group1",
+      "name": "开屏高价分组",
+      "priority": 1,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "1000"
+      ],
+      "scene": "splash",
+      "platform": "Android",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 10,
+      "adSources": [
+        {
+          "id": "source-1779695738471",
+          "name": "Mintegral",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 0,
+          "estimatedRevenue": 0,
+          "ecpm": 0,
+          "thousandRequestValue": 0,
+          "requests": 0,
+          "responses": 0,
+          "responseRate": 0,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "lastUpdated": "2026/5/25 15:55:38",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "1112121",
+          "subPositions": [],
+          "dspSources": [
+            "dsp_5"
+          ]
+        },
+        {
+          "id": "pid-1779695755820",
+          "name": "Vungle",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 1,
+          "priceA": 1,
+          "priceB": 2,
+          "estimatedRevenue": 0,
+          "ecpm": 0,
+          "thousandRequestValue": 0,
+          "requests": 0,
+          "responses": 0,
+          "responseRate": 0,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "revenuePerThousand": 0,
+          "impressions": 0,
+          "winImpressionRate": 0,
+          "clicks": 0,
+          "ctr": 0,
+          "cpc": 0,
+          "lastUpdated": "2026-05-25 07:55",
+          "platforms": [],
+          "codeId": "232323",
+          "dspSources": [
+            "vungle"
+          ],
+          "connectType": "接入对方API"
+        }
+      ],
+      "hasABTest": true,
+      "abTestStarted": true
+    },
+    {
+      "id": "splash-ios-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "iOS"
+      ],
+      "adSlots": [
+        "1000"
+      ],
+      "scene": "splash",
+      "platform": "iOS",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": [
+        {
+          "id": "sp-ios-s1",
+          "name": "穿山甲-开屏iOS",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 18.5,
+          "estimatedRevenue": 15230.8,
+          "ecpm": 22.15,
+          "thousandRequestValue": 0.85,
+          "requests": 168000,
+          "responses": 95200,
+          "responseRate": 56.67,
+          "bidWins": 42100,
+          "bidWinRate": 44.21,
+          "revenuePerThousand": 0.09,
+          "impressions": 65000,
+          "winImpressionRate": 100,
+          "clicks": 3250,
+          "ctr": 5,
+          "cpc": 1.85,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "iOS"
+          ],
+          "codeId": "10011",
+          "dspSources": [
+            "mintegral"
+          ]
+        },
+        {
+          "id": "sp-ios-s2",
+          "name": "快手-开屏iOS",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 15.2,
+          "estimatedRevenue": 7850.25,
+          "ecpm": 15.6,
+          "thousandRequestValue": 0.58,
+          "requests": 88000,
+          "responses": 50300,
+          "responseRate": 57.16,
+          "bidWins": 18200,
+          "bidWinRate": 36.2,
+          "revenuePerThousand": 0.07,
+          "impressions": 38000,
+          "winImpressionRate": 100,
+          "clicks": 1520,
+          "ctr": 4,
+          "cpc": 1.02,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "iOS"
+          ],
+          "codeId": "10013",
+          "dspSources": [
+            "kuaishou"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interstitial-android-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "2101",
+        "2514"
+      ],
+      "scene": "interstitial",
+      "platform": "Android",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": [
+        {
+          "id": "ia-and-s1",
+          "name": "穿山甲-插屏",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 12.5,
+          "estimatedRevenue": 8560.32,
+          "ecpm": 18.25,
+          "thousandRequestValue": 0.68,
+          "requests": 98000,
+          "responses": 52000,
+          "responseRate": 53.06,
+          "bidWins": 18500,
+          "bidWinRate": 35.58,
+          "revenuePerThousand": 0.08,
+          "impressions": 42000,
+          "winImpressionRate": 100,
+          "clicks": 2100,
+          "ctr": 5,
+          "cpc": 1.25,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10007",
+          "dspSources": [
+            "pangle"
+          ]
+        },
+        {
+          "id": "ia-and-s2",
+          "name": "MY-TapTap-安卓",
+          "status": "enabled",
+          "pricingType": "CPM",
+          "price": 15.8,
+          "estimatedRevenue": 12890.45,
+          "ecpm": 16.78,
+          "thousandRequestValue": 0.72,
+          "requests": 145000,
+          "responses": 76800,
+          "responseRate": 52.97,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "revenuePerThousand": 0.07,
+          "impressions": 55000,
+          "winImpressionRate": 100,
+          "clicks": 2200,
+          "ctr": 4,
+          "cpc": 1.58,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10008",
+          "dspSources": [
+            "mintegral"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interstitial-android-group1",
+      "name": "分组测试1",
+      "priority": 1,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "2101"
+      ],
+      "scene": "interstitial",
+      "platform": "Android",
+      "rules": [
+        {
+          "ruleType": "identity",
+          "matchType": "include",
+          "values": [
+            "经期"
+          ]
+        }
+      ],
+      "status": "enabled",
+      "floorPrice": 2.5,
+      "adSources": [
+        {
+          "id": "ia-g1-s1",
+          "name": "MY--嗨量",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 12.5,
+          "estimatedRevenue": 8560.32,
+          "ecpm": 18.25,
+          "thousandRequestValue": 0.68,
+          "requests": 98000,
+          "responses": 52000,
+          "responseRate": 53.06,
+          "bidWins": 18500,
+          "bidWinRate": 35.58,
+          "revenuePerThousand": 0.08,
+          "impressions": 42000,
+          "winImpressionRate": 100,
+          "clicks": 2100,
+          "ctr": 5,
+          "cpc": 1.25,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10015",
+          "dspSources": [
+            "kuaishou"
+          ]
+        },
+        {
+          "id": "ia-g1-s2",
+          "name": "MY-TapTap-安卓",
+          "status": "enabled",
+          "pricingType": "CPM",
+          "price": 15.8,
+          "estimatedRevenue": 12890.45,
+          "ecpm": 16.78,
+          "thousandRequestValue": 0.72,
+          "requests": 145000,
+          "responses": 76800,
+          "responseRate": 52.97,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "revenuePerThousand": 0.07,
+          "impressions": 55000,
+          "winImpressionRate": 100,
+          "clicks": 2200,
+          "ctr": 4,
+          "cpc": 1.58,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10016",
+          "dspSources": [
+            "mintegral"
+          ]
+        },
+        {
+          "id": "ia-g1-s3",
+          "name": "MY-佳投",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 8.9,
+          "estimatedRevenue": 5420.18,
+          "ecpm": 14.56,
+          "thousandRequestValue": 0.45,
+          "requests": 72000,
+          "responses": 37200,
+          "responseRate": 51.67,
+          "bidWins": 12400,
+          "bidWinRate": 33.33,
+          "revenuePerThousand": 0.06,
+          "impressions": 28000,
+          "winImpressionRate": 100,
+          "clicks": 1120,
+          "ctr": 4,
+          "cpc": 0.89,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10017",
+          "dspSources": [
+            "unity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interstitial-android-group2",
+      "name": "分组测试2",
+      "priority": 2,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "2514"
+      ],
+      "scene": "interstitial",
+      "platform": "Android",
+      "rules": [
+        {
+          "ruleType": "identity",
+          "matchType": "include",
+          "values": [
+            "辣妈"
+          ]
+        }
+      ],
+      "status": "disabled",
+      "floorPrice": 5,
+      "adSources": [
+        {
+          "id": "ia-g2-s1",
+          "name": "MY-TapTap(插屏)",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 18.5,
+          "estimatedRevenue": 15230.8,
+          "ecpm": 22.15,
+          "thousandRequestValue": 0.85,
+          "requests": 168000,
+          "responses": 95200,
+          "responseRate": 56.67,
+          "bidWins": 42100,
+          "bidWinRate": 44.21,
+          "revenuePerThousand": 0.09,
+          "impressions": 65000,
+          "winImpressionRate": 100,
+          "clicks": 3250,
+          "ctr": 5,
+          "cpc": 1.85,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10019",
+          "dspSources": [
+            "mintegral"
+          ]
+        },
+        {
+          "id": "ia-g2-s2",
+          "name": "MY-倍业(美团)",
+          "status": "enabled",
+          "pricingType": "CPM",
+          "price": 20,
+          "estimatedRevenue": 18920.5,
+          "ecpm": 19.8,
+          "thousandRequestValue": 0.92,
+          "requests": 198000,
+          "responses": 115000,
+          "responseRate": 58.08,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "revenuePerThousand": 0.08,
+          "impressions": 72000,
+          "winImpressionRate": 100,
+          "clicks": 2880,
+          "ctr": 4,
+          "cpc": 2,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10020",
+          "dspSources": [
+            "tencent"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interstitial-ios-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "iOS"
+      ],
+      "adSlots": [
+        "2101",
+        "2514"
+      ],
+      "scene": "interstitial",
+      "platform": "iOS",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": [
+        {
+          "id": "ii-s1",
+          "name": "MY-TapTap(iOS-图片)",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 18.5,
+          "estimatedRevenue": 15230.8,
+          "ecpm": 22.15,
+          "thousandRequestValue": 0.85,
+          "requests": 168000,
+          "responses": 95200,
+          "responseRate": 56.67,
+          "bidWins": 42100,
+          "bidWinRate": 44.21,
+          "revenuePerThousand": 0.09,
+          "impressions": 65000,
+          "winImpressionRate": 100,
+          "clicks": 3250,
+          "ctr": 5,
+          "cpc": 1.85,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "iOS"
+          ],
+          "codeId": "10021",
+          "dspSources": [
+            "mintegral"
+          ]
+        },
+        {
+          "id": "ii-s2",
+          "name": "MY-倍业(美团)",
+          "status": "enabled",
+          "pricingType": "CPM",
+          "price": 20,
+          "estimatedRevenue": 18920.5,
+          "ecpm": 19.8,
+          "thousandRequestValue": 0.92,
+          "requests": 198000,
+          "responses": 115000,
+          "responseRate": 58.08,
+          "bidWins": 0,
+          "bidWinRate": 0,
+          "revenuePerThousand": 0.08,
+          "impressions": 72000,
+          "winImpressionRate": 100,
+          "clicks": 2880,
+          "ctr": 4,
+          "cpc": 2,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "iOS"
+          ],
+          "codeId": "10022",
+          "dspSources": [
+            "tencent"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interstitial-ios-group1",
+      "name": "插屏iOS高价组",
+      "priority": 1,
+      "platforms": [
+        "iOS"
+      ],
+      "adSlots": [
+        "2101"
+      ],
+      "scene": "interstitial",
+      "platform": "iOS",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 8,
+      "adSources": []
+    },
+    {
+      "id": "search-android-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "4001"
+      ],
+      "scene": "search",
+      "platform": "Android",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": []
+    },
+    {
+      "id": "search-ios-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "iOS"
+      ],
+      "adSlots": [
+        "4001"
+      ],
+      "scene": "search",
+      "platform": "iOS",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": []
+    },
+    {
+      "id": "feed-android-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "Android"
+      ],
+      "adSlots": [
+        "1120",
+        "1601",
+        "1602"
+      ],
+      "scene": "feed",
+      "platform": "Android",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": [
+        {
+          "id": "fa-s1",
+          "name": "穿山甲-信息流",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 16.33,
+          "estimatedRevenue": 11234.56,
+          "ecpm": 14.56,
+          "thousandRequestValue": 0.56,
+          "requests": 120000,
+          "responses": 60000,
+          "responseRate": 50,
+          "bidWins": 20000,
+          "bidWinRate": 50,
+          "revenuePerThousand": 0.05,
+          "impressions": 26462,
+          "winImpressionRate": 100,
+          "clicks": 1058,
+          "ctr": 4,
+          "cpc": 0.96,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10024",
+          "dspSources": [
+            "pangle"
+          ]
+        },
+        {
+          "id": "fa-s2",
+          "name": "快手-信息流",
+          "status": "enabled",
+          "pricingType": "bidding",
+          "price": 15.2,
+          "estimatedRevenue": 11234.56,
+          "ecpm": 14.56,
+          "thousandRequestValue": 0.56,
+          "requests": 120000,
+          "responses": 60000,
+          "responseRate": 50,
+          "bidWins": 20000,
+          "bidWinRate": 50,
+          "revenuePerThousand": 0.05,
+          "impressions": 26462,
+          "winImpressionRate": 100,
+          "clicks": 1058,
+          "ctr": 4,
+          "cpc": 0.96,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "Android"
+          ],
+          "codeId": "10025",
+          "dspSources": [
+            "kuaishou"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "feed-ios-default",
+      "name": "默认分组",
+      "priority": 999,
+      "platforms": [
+        "iOS"
+      ],
+      "adSlots": [
+        "1120",
+        "1601",
+        "1602"
+      ],
+      "scene": "feed",
+      "platform": "iOS",
+      "rules": [],
+      "status": "enabled",
+      "floorPrice": 0,
+      "adSources": [
+        {
+          "id": "fi-s1",
+          "name": "广点通-信息流iOS",
+          "status": "enabled",
+          "pricingType": "CPM",
+          "price": 16.8,
+          "estimatedRevenue": 11234.56,
+          "ecpm": 14.56,
+          "thousandRequestValue": 0.56,
+          "requests": 120000,
+          "responses": 60000,
+          "responseRate": 50,
+          "bidWins": 20000,
+          "bidWinRate": 50,
+          "revenuePerThousand": 0.05,
+          "impressions": 26462,
+          "winImpressionRate": 100,
+          "clicks": 1058,
+          "ctr": 4,
+          "cpc": 0.96,
+          "lastUpdated": "2024-01-15 10:30",
+          "platforms": [
+            "iOS"
+          ],
+          "codeId": "10027",
+          "dspSources": [
+            "gdt"
+          ]
+        }
+      ]
+    }
+  ]
+}
