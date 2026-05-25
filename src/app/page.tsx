@@ -517,6 +517,20 @@ function WaterfallManagementPageContent() {
   // PID管理页面状态
   const [pidPageScene, setPidPageScene] = useState<AdScene | 'all'>('all');
   const [pidPagePlatform, setPidPagePlatform] = useState<'Android' | 'iOS' | 'all'>('all');
+  const [showPidAddDialog, setShowPidAddDialog] = useState(false);
+  const [pidAddScene, setPidAddScene] = useState<AdScene>('splash');
+  const [pidAddPlatform, setPidAddPlatform] = useState<Platform>('Android');
+  const [pidAddGroupId, setPidAddGroupId] = useState('');
+  const [pidAddDspSource, setPidAddDspSource] = useState('');
+  const [pidAddCodeId, setPidAddCodeId] = useState('');
+  const [pidAddPricingType, setPidAddPricingType] = useState<PricingType>('bidding');
+  const [pidAddPrice, setPidAddPrice] = useState('');
+  const [pidAddStatus, setPidAddStatus] = useState(true);
+  const [pidAddDspSelectOpen, setPidAddDspSelectOpen] = useState(false);
+  const [pidAddError, setPidAddError] = useState('');
+  const [editingPidSource, setEditingPidSource] = useState<{ sourceId: string; groupId: string } | null>(null);
+  const [pidAddMinVersion, setPidAddMinVersion] = useState('');
+  const [pidAddMaxVersion, setPidAddMaxVersion] = useState('');
 
   // 代码位分页数据
   const paginatedCodePositions = codePositions.slice(
@@ -986,6 +1000,152 @@ function WaterfallManagementPageContent() {
     setAddSourceFromABTest(false);
     setShowAddSourceDialog(false);
   }, [newSourceName, newSourcePlatform, newSourceCodeId, newSourceStatus, newSourceSubPositions, selectedGroupId, addSourceFromABTest, editingSource, resetSourceForm, setAdGroups, setAbTestConfig, setAddSourceFromABTest, setShowAddSourceDialog, newSourceMinVersion, newSourceMaxVersion]);
+
+  // PID管理页面 - 重置添加PID表单
+  const resetPidAddForm = useCallback(() => {
+    setPidAddDspSource('');
+    setPidAddCodeId('');
+    setPidAddPricingType('bidding');
+    setPidAddPrice('');
+    setPidAddStatus(true);
+    setPidAddError('');
+    setPidAddMinVersion('');
+    setPidAddMaxVersion('');
+    setEditingPidSource(null);
+    setPidAddDspSelectOpen(false);
+  }, []);
+
+  // PID管理页面 - 添加/编辑PID
+  const handlePidAddSubmit = useCallback(() => {
+    if (!pidAddDspSource) {
+      setPidAddError('请选择DSP来源');
+      return;
+    }
+    if (!pidAddCodeId.trim()) {
+      setPidAddError('请输入PID');
+      return;
+    }
+    if (pidAddPricingType !== 'bidding' && (!pidAddPrice.trim() || isNaN(Number(pidAddPrice)))) {
+      setPidAddError('请输入有效价格');
+      return;
+    }
+    if (SDK_SOURCE_VALUES.has(pidAddDspSource)) {
+      if (!pidAddMinVersion.trim() && !pidAddMaxVersion.trim()) {
+        setPidAddError('SDK类型DSP来源时，请填写最小版本或最大版本');
+        return;
+      }
+    }
+    setPidAddError('');
+
+    if (editingPidSource) {
+      // 编辑模式：更新现有DSP来源
+      const updates: Partial<AdSource> = {
+        dspSources: [pidAddDspSource],
+        name: DSP_SOURCE_NAMES[pidAddDspSource] || pidAddDspSource,
+        status: pidAddStatus ? 'enabled' : 'disabled',
+        codeId: pidAddCodeId,
+        pricingType: pidAddPricingType,
+        price: pidAddPricingType !== 'bidding' ? Number(pidAddPrice) : 0,
+        minVersion: pidAddMinVersion || undefined,
+        maxVersion: pidAddMaxVersion || undefined,
+        lastUpdated: new Date().toLocaleString('zh-CN'),
+      };
+      setAdGroups((prev): AdGroup[] => {
+        // 如果切换了分组，需要从旧分组移到新分组
+        const oldGroupId = editingPidSource.groupId;
+        const newGroupId = pidAddGroupId;
+        if (oldGroupId !== newGroupId) {
+          let sourceToMove: AdSource | undefined;
+          const updated = prev.map((g) => {
+            if (g.id === oldGroupId) {
+              const src = g.adSources.find(s => s.id === editingPidSource.sourceId);
+              if (src) sourceToMove = { ...src, ...updates } as AdSource;
+              return { ...g, adSources: g.adSources.filter(s => s.id !== editingPidSource.sourceId) };
+            }
+            return g;
+          });
+          if (sourceToMove) {
+            return updated.map((g) =>
+              g.id === newGroupId ? { ...g, adSources: [...g.adSources, sourceToMove as AdSource] } : g
+            );
+          }
+          return updated;
+        }
+        return prev.map((g) => ({
+          ...g,
+          adSources: g.adSources.map((s) =>
+            s.id === editingPidSource.sourceId ? { ...s, ...updates } as AdSource : s
+          ),
+        }));
+      });
+    } else {
+      // 新增模式：添加到指定分组
+      const newSource: AdSource = {
+        id: `source-${Date.now()}`,
+        name: DSP_SOURCE_NAMES[pidAddDspSource] || pidAddDspSource,
+        status: pidAddStatus ? 'enabled' : 'disabled',
+        pricingType: pidAddPricingType,
+        price: pidAddPricingType !== 'bidding' ? Number(pidAddPrice) : 0,
+        estimatedRevenue: 0,
+        ecpm: 0,
+        thousandRequestValue: 0,
+        requests: 0,
+        responses: 0,
+        responseRate: 0,
+        bidWins: 0,
+        bidWinRate: 0,
+        lastUpdated: new Date().toLocaleString('zh-CN'),
+        platforms: [pidAddPlatform],
+        codeId: pidAddCodeId,
+        subPositions: [],
+        dspSources: [pidAddDspSource],
+        minVersion: pidAddMinVersion || undefined,
+        maxVersion: pidAddMaxVersion || undefined,
+      };
+      setAdGroups((prev) =>
+        prev.map((g) =>
+          g.id === pidAddGroupId ? { ...g, adSources: [...g.adSources, newSource] } : g
+        )
+      );
+    }
+
+    resetPidAddForm();
+    setShowPidAddDialog(false);
+  }, [pidAddDspSource, pidAddCodeId, pidAddPricingType, pidAddPrice, pidAddStatus, pidAddGroupId, pidAddPlatform, editingPidSource, resetPidAddForm, pidAddMinVersion, pidAddMaxVersion]);
+
+  // PID管理页面 - 开启/关闭PID
+  const togglePidStatus = useCallback((sourceId: string) => {
+    setAdGroups((prev) =>
+      prev.map((g) => ({
+        ...g,
+        adSources: g.adSources.map((s) =>
+          s.id === sourceId
+            ? { ...s, status: s.status === 'enabled' ? 'disabled' as const : 'enabled' as const }
+            : s
+        ),
+      }))
+    );
+  }, []);
+
+  // PID管理页面 - 打开编辑PID弹窗
+  const openPidEditDialog = useCallback((sourceId: string, groupId: string) => {
+    const group = adGroups.find(g => g.id === groupId);
+    const source = group?.adSources.find(s => s.id === sourceId);
+    if (!source || !group) return;
+    setEditingPidSource({ sourceId, groupId });
+    setPidAddScene(group.scene);
+    setPidAddPlatform(group.platform);
+    setPidAddGroupId(groupId);
+    setPidAddDspSource(source.dspSources?.[0] || '');
+    setPidAddCodeId(source.codeId || '');
+    setPidAddPricingType(source.pricingType);
+    setPidAddPrice(source.pricingType !== 'bidding' ? String(source.price) : '');
+    setPidAddStatus(source.status === 'enabled');
+    setPidAddMinVersion(source.minVersion || '');
+    setPidAddMaxVersion(source.maxVersion || '');
+    setPidAddError('');
+    setShowPidAddDialog(true);
+  }, [adGroups]);
 
   // 鼠标悬停显示详情
   const handleMouseEnterSource = useCallback((source: AdSource, e: React.MouseEvent) => {
@@ -1551,6 +1711,20 @@ function WaterfallManagementPageContent() {
                     </SelectContent>
                   </Select>
                 </div>
+                <Button
+                  size="sm"
+                  className="bg-[#FF4D88] hover:bg-[#FF6A9E] text-white"
+                  onClick={() => {
+                    resetPidAddForm();
+                    setPidAddScene(pidPageScene !== 'all' ? pidPageScene : 'splash');
+                    setPidAddPlatform(pidPagePlatform !== 'all' ? pidPagePlatform : 'Android');
+                    setPidAddGroupId('');
+                    setShowPidAddDialog(true);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  新增
+                </Button>
               </div>
             </div>
 
@@ -1626,6 +1800,7 @@ function WaterfallManagementPageContent() {
                                   <TableHead className="text-[#86909C] font-medium">定价方式</TableHead>
                                   <TableHead className="text-[#86909C] font-medium">价格</TableHead>
                                   <TableHead className="text-[#86909C] font-medium">状态</TableHead>
+                                  <TableHead className="text-[#86909C] font-medium text-right">操作</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -1657,6 +1832,26 @@ function WaterfallManagementPageContent() {
                                       }`}>
                                         {p.status === 'enabled' ? '启用' : '停用'}
                                       </span>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 px-2 text-[#2563EB] hover:text-[#1D4ED8] hover:bg-[#EFF6FF]"
+                                          onClick={() => openPidEditDialog(p.sourceId, p.groupId)}
+                                        >
+                                          编辑
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className={`h-7 px-2 ${p.status === 'enabled' ? 'text-[#C62828] hover:text-[#B71C1C] hover:bg-[#FFEBEE]' : 'text-[#2E7D32] hover:text-[#1B5E20] hover:bg-[#E8F5E9]'}`}
+                                          onClick={() => togglePidStatus(p.sourceId)}
+                                        >
+                                          {p.status === 'enabled' ? '关闭' : '开启'}
+                                        </Button>
+                                      </div>
                                     </TableCell>
                                   </TableRow>
                                 ))}
@@ -2580,6 +2775,186 @@ function WaterfallManagementPageContent() {
         </DialogContent>
       </Dialog>
 
+      {/* PID管理 - 新增/编辑PID弹窗 */}
+      <Dialog open={showPidAddDialog} onOpenChange={(open) => { if (!open) { resetPidAddForm(); setShowPidAddDialog(false); } }}>
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>{editingPidSource ? '编辑PID' : '新增PID'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* DSP来源选择 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> DSP来源</label>
+              <Popover open={pidAddDspSelectOpen} onOpenChange={setPidAddDspSelectOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-64 justify-between" role="combobox">
+                    {pidAddDspSource ? (DSP_SOURCE_NAMES[pidAddDspSource] || pidAddDspSource) : '请选择DSP来源'}
+                    <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0">
+                  <Command>
+                    <CommandInput placeholder="搜索DSP来源..." />
+                    <CommandList>
+                      <CommandEmpty>未找到匹配的DSP来源</CommandEmpty>
+                      {DSP_SOURCE_LIST.map((dsp: { value: string; label: string }) => (
+                        <CommandItem
+                          key={dsp.value}
+                          value={dsp.label}
+                          onSelect={() => {
+                            setPidAddDspSource(dsp.value);
+                            setPidAddDspSelectOpen(false);
+                          }}
+                        >
+                          {dsp.label}
+                          {SDK_SOURCE_VALUES.has(dsp.value) && <span className="text-[#86909C] text-xs ml-1">SDK</span>}
+                        </CommandItem>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* 广告场景 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 广告场景</label>
+              <Select value={pidAddScene} onValueChange={(v) => { setPidAddScene(v as AdScene); setPidAddGroupId(''); }}>
+                <SelectTrigger className="w-64">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SCENE_ITEMS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 平台 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 平台</label>
+              <Select value={pidAddPlatform} onValueChange={(v) => { setPidAddPlatform(v as Platform); setPidAddGroupId(''); }}>
+                <SelectTrigger className="w-64">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Android">安卓</SelectItem>
+                  <SelectItem value="iOS">iOS</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 所属分组 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 所属分组</label>
+              <Select value={pidAddGroupId} onValueChange={setPidAddGroupId}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="请选择分组" />
+                </SelectTrigger>
+                <SelectContent>
+                  {adGroups
+                    .filter(g => g.scene === pidAddScene && g.platform === pidAddPlatform)
+                    .map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* PID输入 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> PID</label>
+              <Input
+                value={pidAddCodeId}
+                onChange={(e) => setPidAddCodeId(e.target.value)}
+                placeholder="请输入PID"
+                className="w-64"
+              />
+            </div>
+
+            {/* 定价方式 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">定价方式</label>
+              <Select value={pidAddPricingType} onValueChange={(v) => setPidAddPricingType(v as PricingType)}>
+                <SelectTrigger className="w-64">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bidding">竞价</SelectItem>
+                  <SelectItem value="CPM">CPM</SelectItem>
+                  <SelectItem value="CPC">CPC</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 价格 - 定价方式时显示 */}
+            {pidAddPricingType !== 'bidding' && (
+              <div className="flex items-center">
+                <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0"><span className="text-red-500">*</span> 价格</label>
+                <div className="relative w-64">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86909C] text-sm">&yen;</span>
+                  <Input
+                    value={pidAddPrice}
+                    onChange={(e) => setPidAddPrice(e.target.value)}
+                    placeholder="0.00"
+                    className="pl-7"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* SDK版本配置 - 仅在选择SDK类型DSP来源时显示 */}
+            {SDK_SOURCE_VALUES.has(pidAddDspSource) && (
+              <div className="border border-[#E5E6EB] rounded-lg p-4 space-y-3">
+                <div className="text-xs text-[#86909C] font-medium">SDK版本配置 <span className="text-[#FF4D88]">*</span></div>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <label className="text-xs text-[#4E5969] mb-1 block">最小版本</label>
+                    <Input
+                      value={pidAddMinVersion}
+                      onChange={(e) => setPidAddMinVersion(e.target.value)}
+                      placeholder="如 9.01.0"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-[#4E5969] mb-1 block">最大版本</label>
+                    <Input
+                      value={pidAddMaxVersion}
+                      onChange={(e) => setPidAddMaxVersion(e.target.value)}
+                      placeholder="如 9.01.0"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 状态 */}
+            <div className="flex items-center">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">状态</label>
+              <Switch checked={pidAddStatus} onCheckedChange={setPidAddStatus} />
+            </div>
+
+            {/* 错误提示 */}
+            {pidAddError && (
+              <div className="flex items-center">
+                <span className="text-xs text-red-500">{pidAddError}</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { resetPidAddForm(); setShowPidAddDialog(false); }}>
+              取消
+            </Button>
+            <Button
+              className="bg-[#FF4D88] hover:bg-[#FF6A9E] text-white"
+              onClick={handlePidAddSubmit}
+            >
+              {editingPidSource ? '保存' : '提交'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 配置A/B测试弹窗 */}
       <Dialog open={abTestStep === 2} onOpenChange={(open) => { if (!open) setAbTestStep(0); }}>
