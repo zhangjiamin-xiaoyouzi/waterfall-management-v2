@@ -503,10 +503,23 @@ function WaterfallManagementPageContent() {
   const [showRolloutConfirm, setShowRolloutConfirm] = useState(false);
   const [rolloutTargetGroup, setRolloutTargetGroup] = useState<'A' | 'B'>('A');
 
+  // PID管理筛选状态
+  const [pidFilterScene, setPidFilterScene] = useState<string>('all');
+  const [pidFilterPlatform, setPidFilterPlatform] = useState<string>('all');
+  const [pidFilterSlot, setPidFilterSlot] = useState<string>('all');
+
+  // PID筛选后的列表
+  const filteredCodePositions = codePositions.filter((code) => {
+    if (pidFilterScene !== 'all' && code.scene !== pidFilterScene) return false;
+    if (pidFilterPlatform !== 'all' && code.platform !== pidFilterPlatform) return false;
+    if (pidFilterSlot !== 'all' && code.slot !== pidFilterSlot) return false;
+    return true;
+  });
+
   // 代码位分页状态
   const [currentPageNum, setCurrentPageNum] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const totalCodeCount = codePositions.length;
+  const totalCodeCount = filteredCodePositions.length;
   const totalPages = Math.ceil(totalCodeCount / pageSize);
 
   // 分组管理弹窗状态
@@ -519,7 +532,7 @@ function WaterfallManagementPageContent() {
   const [batchPrice, setBatchPrice] = useState('');
 
   // 代码位分页数据
-  const paginatedCodePositions = codePositions.slice(
+  const paginatedCodePositions = filteredCodePositions.slice(
     (currentPageNum - 1) * pageSize,
     currentPageNum * pageSize
   );
@@ -1052,14 +1065,14 @@ function WaterfallManagementPageContent() {
                     >
                       <span>流量分组管理</span>
                     </button>
-                    {/* 代码位ID管理 */}
+                    {/* PID管理 */}
                     <button
                       className={`w-full flex items-center justify-between px-4 py-2.5 text-sm border-r-2 ${
                         currentPage === 'codePosition'
                           ? 'bg-[#FFF7FA] text-[#1D2129] border-[#FF4D88]'
                           : 'text-[#1D2129] border-transparent hover:bg-[#F9FAFB]'
                       }`}
-                      onClick={() => setCurrentPage('codePosition')}
+                      onClick={() => { setCurrentPage('codePosition'); setPidFilterScene('all'); setPidFilterPlatform('all'); setPidFilterSlot('all'); setCurrentPageNum(1); }}
                     >
                       <span>PID管理</span>
                     </button>
@@ -1508,7 +1521,7 @@ function WaterfallManagementPageContent() {
 
           </React.Fragment>
           ) : (
-          /* ==================== 代码位ID管理页面 ==================== */
+          /* ==================== PID管理页面 ==================== */
           <React.Fragment>
             {/* 获取代码位绑定的分组 */}
             {(() => {
@@ -1520,14 +1533,56 @@ function WaterfallManagementPageContent() {
               return null;
             })()}
             
-            {/* 页面标题 */}
+            {/* 筛选条件 + 操作按钮 */}
             <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Select value={pidFilterScene} onValueChange={(v) => { setPidFilterScene(v); setPidFilterSlot('all'); setCurrentPageNum(1); }}>
+                  <SelectTrigger className="w-32 h-8 text-sm">
+                    <SelectValue placeholder="广告场景" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部场景</SelectItem>
+                    <SelectItem value="开屏">开屏</SelectItem>
+                    <SelectItem value="Banner">Banner</SelectItem>
+                    <SelectItem value="插屏">插屏</SelectItem>
+                    <SelectItem value="激励视频">激励视频</SelectItem>
+                    <SelectItem value="信息流">信息流</SelectItem>
+                    <SelectItem value="原生">原生</SelectItem>
+                    <SelectItem value="搜索">搜索</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={pidFilterPlatform} onValueChange={(v) => { setPidFilterPlatform(v); setCurrentPageNum(1); }}>
+                  <SelectTrigger className="w-28 h-8 text-sm">
+                    <SelectValue placeholder="平台" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部平台</SelectItem>
+                    <SelectItem value="Android">安卓</SelectItem>
+                    <SelectItem value="iOS">iOS</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={pidFilterSlot} onValueChange={(v) => { setPidFilterSlot(v); setCurrentPageNum(1); }}>
+                  <SelectTrigger className="w-36 h-8 text-sm">
+                    <SelectValue placeholder="广告位" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部广告位</SelectItem>
+                    {(pidFilterScene === 'all' || pidFilterScene === '开屏') && <SelectItem value="1000">美柚--开屏</SelectItem>}
+                    {(pidFilterScene === 'all' || pidFilterScene === '插屏') && <SelectItem value="2101">美柚-首页-插屏</SelectItem>}
+                    {(pidFilterScene === 'all' || pidFilterScene === '插屏') && <SelectItem value="2514">爱爱记录-记录完成插屏</SelectItem>}
+                    {(pidFilterScene === 'all' || pidFilterScene === '信息流') && <SelectItem value="1120">首页大社区feeds流</SelectItem>}
+                    {(pidFilterScene === 'all' || pidFilterScene === '信息流') && <SelectItem value="1601">美柚-她她圈-帖子详情楼间广告</SelectItem>}
+                    {(pidFilterScene === 'all' || pidFilterScene === '信息流') && <SelectItem value="1602">美柚-她她圈-帖子详情信息流</SelectItem>}
+                    {(pidFilterScene === 'all' || pidFilterScene === '搜索') && <SelectItem value="4001">美柚-搜索广告</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
                 onClick={() => setShowAddCodeDialog(true)}
               >
                 <Plus className="w-4 h-4 mr-1" />
-                新增代码位
+                新增PID
               </Button>
             </div>
 
@@ -1536,7 +1591,7 @@ function WaterfallManagementPageContent() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-[#F7F8FA]">
-                    <TableHead className="text-[#86909C] font-medium">代码位ID</TableHead>
+                    <TableHead className="text-[#86909C] font-medium">PID</TableHead>
                     <TableHead className="text-[#86909C] font-medium">名称</TableHead>
                     <TableHead className="text-[#86909C] font-medium">状态</TableHead>
                     <TableHead className="text-[#86909C] font-medium">系统平台</TableHead>
@@ -2077,18 +2132,18 @@ function WaterfallManagementPageContent() {
       }}>
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
-            <DialogTitle>{editingCodePosition ? '编辑代码位' : '新增代码位'}</DialogTitle>
+            <DialogTitle>{editingCodePosition ? '编辑PID' : '新增PID'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {/* 代码位ID */}
+            {/* PID */}
             <div className="flex items-center">
               <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">
-                <span className="text-red-500">*</span> 代码位ID
+                <span className="text-red-500">*</span> PID
               </label>
               <Input
                 value={newCodeForm.codeId}
                 onChange={(e) => setNewCodeForm({ ...newCodeForm, codeId: e.target.value })}
-                placeholder="请输入代码位ID"
+                placeholder="请输入PID"
                 className="flex-1"
               />
             </div>
