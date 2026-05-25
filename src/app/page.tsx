@@ -1522,7 +1522,6 @@ function WaterfallManagementPageContent() {
             
             {/* 页面标题 */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[#1D2129]">代码位列表</h2>
               <Button
                 className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
                 onClick={() => setShowAddCodeDialog(true)}
