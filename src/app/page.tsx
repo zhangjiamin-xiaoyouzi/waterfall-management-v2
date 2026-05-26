@@ -1656,7 +1656,7 @@ function WaterfallManagementPageContent() {
                 <TableHeader>
                   <TableRow className="bg-[#F7F8FA]">
                     <TableHead className="text-[#86909C] font-medium">PID</TableHead>
-                    <TableHead className="text-[#86909C] font-medium">名称</TableHead>
+                    <TableHead className="text-[#86909C] font-medium">DSP来源</TableHead>
                     <TableHead className="text-[#86909C] font-medium">状态</TableHead>
                     <TableHead className="text-[#86909C] font-medium">平台</TableHead>
                     <TableHead className="text-[#86909C] font-medium">广告场景</TableHead>
@@ -1669,7 +1669,7 @@ function WaterfallManagementPageContent() {
                   {paginatedCodePositions.map((code) => (
                     <TableRow key={code.id} className="hover:bg-[#F9FAFB]">
                       <TableCell className="text-[#1D2129]">{code.codeId}</TableCell>
-                      <TableCell className="text-[#1D2129]">{code.name}</TableCell>
+                      <TableCell className="text-[#1D2129]">{code.dspSource}</TableCell>
                       <TableCell>
                         <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
                           code.status === 'enabled'
