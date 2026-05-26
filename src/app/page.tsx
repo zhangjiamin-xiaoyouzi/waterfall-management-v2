@@ -655,9 +655,10 @@ function WaterfallManagementPageContent() {
   const reportData = useMemo(() => {
     const key = `${reportScene}-${reportPlatform}`;
     const mockRows = MOCK_REPORT_DATA[key] || [];
-    // 按日期范围过滤
-    const fromStr = reportDateRange.from.toISOString().slice(0, 10);
-    const toStr = reportDateRange.to.toISOString().slice(0, 10);
+    // 按日期范围过滤（使用本地日期避免时区偏移）
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const fromStr = `${reportDateRange.from.getFullYear()}-${pad(reportDateRange.from.getMonth() + 1)}-${pad(reportDateRange.from.getDate())}`;
+    const toStr = `${reportDateRange.to.getFullYear()}-${pad(reportDateRange.to.getMonth() + 1)}-${pad(reportDateRange.to.getDate())}`;
     return mockRows.filter(row => row.date >= fromStr && row.date <= toStr);
   }, [reportScene, reportPlatform, reportDateRange]);
 
@@ -739,9 +740,10 @@ function WaterfallManagementPageContent() {
   const abReportData = useMemo(() => {
     const key = `${abReportScene}-${abReportPlatform}`;
     const mockRows = MOCK_AB_REPORT_DATA[key] || [];
-    // 按日期范围过滤
-    const fromStr = abReportDateRange.from.toISOString().slice(0, 10);
-    const toStr = abReportDateRange.to.toISOString().slice(0, 10);
+    // 按日期范围过滤（使用本地日期避免时区偏移）
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const fromStr = `${abReportDateRange.from.getFullYear()}-${pad(abReportDateRange.from.getMonth() + 1)}-${pad(abReportDateRange.from.getDate())}`;
+    const toStr = `${abReportDateRange.to.getFullYear()}-${pad(abReportDateRange.to.getMonth() + 1)}-${pad(abReportDateRange.to.getDate())}`;
     return mockRows.filter(row => row.date >= fromStr && row.date <= toStr);
   }, [abReportScene, abReportPlatform, abReportDateRange]);
 
@@ -2136,9 +2138,9 @@ function WaterfallManagementPageContent() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-[#86909C] whitespace-nowrap">广告场景</span>
-                  <Select value={reportScene} onValueChange={setReportScene}>
+                  <Select value={reportScene} onValueChange={(v) => { setReportScene(v); setReportSlot('all'); setReportGroup('all'); }}>
                     <SelectTrigger className="w-28 h-8 text-sm">
-                      <SelectValue />
+                      <SelectValue placeholder="请选择" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">全部</SelectItem>
@@ -2150,9 +2152,9 @@ function WaterfallManagementPageContent() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-[#86909C] whitespace-nowrap">平台</span>
-                  <Select value={reportPlatform} onValueChange={setReportPlatform}>
+                  <Select value={reportPlatform} onValueChange={(v) => { setReportPlatform(v); setReportGroup('all'); }}>
                     <SelectTrigger className="w-28 h-8 text-sm">
-                      <SelectValue />
+                      <SelectValue placeholder="请选择" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">全部</SelectItem>
@@ -2179,7 +2181,7 @@ function WaterfallManagementPageContent() {
                   <span className="text-sm text-[#86909C] whitespace-nowrap">流量分组</span>
                   <Select value={reportGroup} onValueChange={setReportGroup}>
                     <SelectTrigger className="w-32 h-8 text-sm">
-                      <SelectValue />
+                      <SelectValue placeholder="请选择" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">全部分组</SelectItem>
@@ -2205,7 +2207,7 @@ function WaterfallManagementPageContent() {
               </div>
             </div>
 
-            {reportScene !== 'all' && reportPlatform !== 'all' && reportSlot !== 'all' && reportGroup !== 'all' ? (
+            {reportScene !== 'all' && reportPlatform !== 'all' ? (
             <div className="flex-1 overflow-auto p-6 space-y-6">
               {/* 数据图表区 */}
               <div className="bg-white rounded-lg border border-[#E5E6EB] p-5">
@@ -2297,7 +2299,7 @@ function WaterfallManagementPageContent() {
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <BarChart3 className="w-12 h-12 text-[#C9CDD4] mx-auto mb-3" />
-                <p className="text-[#86909C] text-sm">请选择广告场景、平台、广告位和流量分组后查看数据</p>
+                <p className="text-[#86909C] text-sm">请选择广告场景和平台后查看数据</p>
               </div>
             </div>
             )}
@@ -2334,7 +2336,7 @@ function WaterfallManagementPageContent() {
                 <span className="text-sm text-[#86909C] whitespace-nowrap">广告场景</span>
                 <Select value={abReportScene} onValueChange={(v) => { setAbReportScene(v); setAbReportSlot('all'); setAbReportGroup('all'); }}>
                   <SelectTrigger className="w-28 h-8 text-sm">
-                    <SelectValue />
+                    <SelectValue placeholder="请选择" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部</SelectItem>
@@ -2348,11 +2350,11 @@ function WaterfallManagementPageContent() {
                 <span className="text-sm text-[#86909C] whitespace-nowrap">平台</span>
                 <Select value={abReportPlatform} onValueChange={(v) => { setAbReportPlatform(v); setAbReportGroup('all'); }}>
                   <SelectTrigger className="w-28 h-8 text-sm">
-                    <SelectValue />
+                    <SelectValue placeholder="请选择" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部</SelectItem>
-                    <SelectItem value="Android">Android</SelectItem>
+                    <SelectItem value="Android">安卓</SelectItem>
                     <SelectItem value="iOS">iOS</SelectItem>
                   </SelectContent>
                 </Select>
@@ -2361,7 +2363,7 @@ function WaterfallManagementPageContent() {
                 <span className="text-sm text-[#86909C] whitespace-nowrap">广告位</span>
                 <Select value={abReportSlot} onValueChange={(v) => { setAbReportSlot(v); setAbReportGroup('all'); }}>
                   <SelectTrigger className="w-28 h-8 text-sm">
-                    <SelectValue />
+                    <SelectValue placeholder="请选择" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部</SelectItem>
@@ -2375,7 +2377,7 @@ function WaterfallManagementPageContent() {
                 <span className="text-sm text-[#86909C] whitespace-nowrap">流量分组</span>
                 <Select value={abReportGroup} onValueChange={setAbReportGroup} disabled={abReportScene === 'all' && abReportPlatform === 'all' && abReportSlot === 'all'}>
                   <SelectTrigger className="w-40 h-8 text-sm">
-                    <SelectValue />
+                    <SelectValue placeholder="请选择" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部分组</SelectItem>
@@ -2390,7 +2392,7 @@ function WaterfallManagementPageContent() {
               </Button>
             </div>
 
-            {abReportScene !== 'all' && abReportPlatform !== 'all' && abReportSlot !== 'all' && abReportGroup !== 'all' ? (
+            {abReportScene !== 'all' && abReportPlatform !== 'all' ? (
             <>
             {/* 实验基础信息 */}
             <div className="bg-white rounded-lg border border-[#E5E6EB] p-4 mb-6 flex items-center gap-6">
@@ -2536,7 +2538,7 @@ function WaterfallManagementPageContent() {
             ) : (
             <div className="flex flex-col items-center justify-center py-20 text-[#86909C]">
               <BarChart3 className="w-12 h-12 mb-3 opacity-40" />
-              <p className="text-base">请选择广告场景、平台、广告位和流量分组后查看数据</p>
+              <p className="text-base">请选择广告场景和平台后查看数据</p>
             </div>
             )}
           </React.Fragment>
