@@ -579,9 +579,17 @@ function WaterfallManagementPageContent() {
   const [pidFilterPlatform, setPidFilterPlatform] = useState<string>('all');
   const [pidFilterSlot, setPidFilterSlot] = useState<string>('all');
 
+  // 中文场景 -> 英文场景映射（用于筛选比较）
+  const pidSceneCnToEn: Record<string, string> = {
+    '开屏': 'splash',
+    '插屏': 'interstitial',
+    '信息流': 'feed',
+    '搜索': 'search',
+  };
+
   // PID筛选后的列表
   const filteredCodePositions = codePositions.filter((code) => {
-    if (pidFilterScene !== 'all' && code.scene !== pidFilterScene) return false;
+    if (pidFilterScene !== 'all' && (pidSceneCnToEn[code.scene] || code.scene) !== pidFilterScene) return false;
     if (pidFilterPlatform !== 'all' && code.platform !== pidFilterPlatform) return false;
     if (pidFilterSlot !== 'all' && code.slot !== pidFilterSlot) return false;
     return true;
@@ -1606,13 +1614,9 @@ function WaterfallManagementPageContent() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部场景</SelectItem>
-                    <SelectItem value="开屏">开屏</SelectItem>
-                    <SelectItem value="Banner">Banner</SelectItem>
-                    <SelectItem value="插屏">插屏</SelectItem>
-                    <SelectItem value="激励视频">激励视频</SelectItem>
-                    <SelectItem value="信息流">信息流</SelectItem>
-                    <SelectItem value="原生">原生</SelectItem>
-                    <SelectItem value="搜索">搜索</SelectItem>
+                    {SCENE_ITEMS.map((scene) => (
+                      <SelectItem key={scene.value} value={scene.value}>{scene.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Select value={pidFilterPlatform} onValueChange={(v) => { setPidFilterPlatform(v); setCurrentPageNum(1); }}>
@@ -1631,13 +1635,9 @@ function WaterfallManagementPageContent() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">全部广告位</SelectItem>
-                    {(pidFilterScene === 'all' || pidFilterScene === '开屏') && <SelectItem value="1000">美柚--开屏</SelectItem>}
-                    {(pidFilterScene === 'all' || pidFilterScene === '插屏') && <SelectItem value="2101">美柚-首页-插屏</SelectItem>}
-                    {(pidFilterScene === 'all' || pidFilterScene === '插屏') && <SelectItem value="2514">爱爱记录-记录完成插屏</SelectItem>}
-                    {(pidFilterScene === 'all' || pidFilterScene === '信息流') && <SelectItem value="1120">首页大社区feeds流</SelectItem>}
-                    {(pidFilterScene === 'all' || pidFilterScene === '信息流') && <SelectItem value="1601">美柚-她她圈-帖子详情楼间广告</SelectItem>}
-                    {(pidFilterScene === 'all' || pidFilterScene === '信息流') && <SelectItem value="1602">美柚-她她圈-帖子详情信息流</SelectItem>}
-                    {(pidFilterScene === 'all' || pidFilterScene === '搜索') && <SelectItem value="4001">美柚-搜索广告</SelectItem>}
+                    {(pidFilterScene === 'all' ? Object.values(SCENE_SLOT_IDS).flat() : (SCENE_SLOT_IDS[pidFilterScene as AdScene] || [])).map((slotId) => (
+                      <SelectItem key={slotId} value={slotId}>{slotId} - {SLOT_NAME_MAP[slotId]}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
