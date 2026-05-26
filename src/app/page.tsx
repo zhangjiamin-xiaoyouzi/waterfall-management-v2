@@ -110,6 +110,8 @@ import { ChevronDownIcon, ChevronsRightIcon, ChevronsLeftIcon, InboxIcon, Search
 import {
   SCENE_NAV_ITEMS,
   MOCK_AD_GROUPS,
+  MOCK_REPORT_DATA,
+  MOCK_AB_REPORT_DATA,
   type AdScene,
   type AdGroup,
   type AdSource,
@@ -120,6 +122,7 @@ import {
   type MatchType,
   RULE_VALUES,
   SLOT_SUB_POSITIONS,
+  type ReportRow,
 } from '@/lib/waterfall-types';
 
 // DSP来源颜色标识配置
@@ -622,8 +625,8 @@ function WaterfallManagementPageContent() {
 
   // ==================== 综合报表状态 ====================
   const [reportDateRange, setReportDateRange] = useState<{ from: Date; to: Date }>({
-    from: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
-    to: new Date(),
+    from: new Date('2026-05-20'),
+    to: new Date('2026-05-26'),
   });
   const [reportGroup, setReportGroup] = useState<string>('all');
   const [reportMetric, setReportMetric] = useState<string>('incomePerThousand');
@@ -648,51 +651,15 @@ function WaterfallManagementPageContent() {
     { value: 'cpc', label: 'cpc' },
   ];
 
-  // 生成模拟报表数据
-  const generateReportData = useCallback(() => {
-    const days: Array<{
-      date: string;
-      incomePerThousand: number;
-      estimatedIncome: number;
-      ecpm: number;
-      requestValuePerThousand: number;
-      requestCount: number;
-      returnRate: number;
-      bidSuccessCount: number;
-      bidSuccessRate: number;
-      impressionCount: number;
-      winShowRate: number;
-      clickCount: number;
-      clickRate: number;
-      cpc: number;
-    }> = [];
-    const fromDate = reportDateRange.from;
-    const toDate = reportDateRange.to;
-    const dayMs = 24 * 60 * 60 * 1000;
-
-    for (let d = new Date(fromDate); d <= toDate; d = new Date(d.getTime() + dayMs)) {
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      days.push({
-        date: dateStr,
-        incomePerThousand: +(100 + Math.random() * 60).toFixed(2),
-        estimatedIncome: +(350000 + Math.random() * 200000).toFixed(2),
-        ecpm: +(5 + Math.random() * 8).toFixed(2),
-        requestValuePerThousand: +(70 + Math.random() * 60).toFixed(2),
-        requestCount: Math.floor(3000000 + Math.random() * 2000000),
-        returnRate: +(75 + Math.random() * 15).toFixed(2),
-        bidSuccessCount: Math.floor(1500000 + Math.random() * 2000000),
-        bidSuccessRate: +(60 + Math.random() * 25).toFixed(2),
-        impressionCount: Math.floor(1000000 + Math.random() * 1500000),
-        winShowRate: +(60 + Math.random() * 20).toFixed(2),
-        clickCount: Math.floor(5000 + Math.random() * 10000),
-        clickRate: +(0.3 + Math.random() * 0.5).toFixed(2),
-        cpc: +(1.5 + Math.random() * 1.5).toFixed(2),
-      });
-    }
-    return days;
-  }, [reportDateRange]);
-
-  const reportData = useMemo(() => generateReportData(), [generateReportData]);
+  // 综合报表数据：根据筛选条件从mock数据中获取
+  const reportData = useMemo(() => {
+    const key = `${reportScene}-${reportPlatform}`;
+    const mockRows = MOCK_REPORT_DATA[key] || [];
+    // 按日期范围过滤
+    const fromStr = reportDateRange.from.toISOString().slice(0, 10);
+    const toStr = reportDateRange.to.toISOString().slice(0, 10);
+    return mockRows.filter(row => row.date >= fromStr && row.date <= toStr);
+  }, [reportScene, reportPlatform, reportDateRange]);
 
   // 报表总计行
   const reportTotals = useMemo(() => {
@@ -702,10 +669,10 @@ function WaterfallManagementPageContent() {
     const avgFields = ['incomePerThousand', 'ecpm', 'requestValuePerThousand', 'returnRate', 'bidSuccessRate', 'winShowRate', 'clickRate', 'cpc'];
 
     reportData.forEach(row => {
-      sumFields.forEach(f => { total[f] = (total[f] || 0) + Number((row as Record<string, unknown>)[f]); });
+      sumFields.forEach(f => { total[f] = (total[f] || 0) + Number(row[f as keyof ReportRow]); });
     });
     avgFields.forEach(f => {
-      total[f] = reportData.reduce((s, r) => s + Number((r as Record<string, unknown>)[f]), 0) / reportData.length;
+      total[f] = reportData.reduce((s, r) => s + Number(r[f as keyof ReportRow]), 0) / reportData.length;
     });
     return total;
   }, [reportData]);
@@ -728,7 +695,7 @@ function WaterfallManagementPageContent() {
   const handleExportReport = () => {
     const headers = ['日期', ...REPORT_METRICS.map(m => m.label)];
     const rows = reportData.map(row =>
-      [row.date, ...REPORT_METRICS.map(m => formatReportValue(Number((row as Record<string, unknown>)[m.value]), m.value))]
+      [row.date, ...REPORT_METRICS.map(m => formatReportValue(Number(row[m.value as keyof ReportRow]), m.value))]
     );
     const totalsRow = ['总计', ...REPORT_METRICS.map(m => formatReportValue(Number(reportTotals?.[m.value] || 0), m.value))];
     const csv = [headers.join(','), ...rows.map(r => r.join(',')), totalsRow.join(',')].join('\n');
@@ -761,59 +728,22 @@ function WaterfallManagementPageContent() {
     return groups;
   }, [adGroups, abReportScene, abReportPlatform, abReportSlot]);
   const [abReportDateRange, setAbReportDateRange] = useState<{ from: Date; to: Date }>({
-    from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    to: new Date(),
+    from: new Date('2026-05-19'),
+    to: new Date('2026-05-26'),
   });
 
   // A/B测试报表数据指标（复用综合报表指标）
   const AB_REPORT_METRICS = REPORT_METRICS;
 
-  // 生成A/B测试报表数据
-  const generateABReportData = useCallback(() => {
-    const days: { date: string; groupA: Record<string, number>; groupB: Record<string, number> }[] = [];
-    const dayCount = Math.ceil((abReportDateRange.to.getTime() - abReportDateRange.from.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-    for (let i = 0; i < dayCount; i++) {
-      const date = new Date(abReportDateRange.from.getTime() + i * 24 * 60 * 60 * 1000);
-      const dateStr = date.toISOString().slice(0, 10);
-      const base = 100 + Math.random() * 50;
-      days.push({
-        date: dateStr,
-        groupA: {
-          incomePerThousand: +(base + Math.random() * 20).toFixed(2),
-          estimatedIncome: +(base * 1260 + Math.random() * 5000).toFixed(2),
-          ecpm: +(base * 0.07 + Math.random() * 0.5).toFixed(2),
-          requestValuePerThousand: +(base * 0.8 + Math.random() * 10).toFixed(2),
-          requestCount: Math.round(18000000 + Math.random() * 4000000),
-          returnRate: +(84 + Math.random() * 4).toFixed(1),
-          bidSuccessCount: Math.round(14000000 + Math.random() * 3000000),
-          bidSuccessRate: +(74 + Math.random() * 5).toFixed(1),
-          impressionCount: Math.round(14000000 + Math.random() * 3000000),
-          winShowRate: +(70 + Math.random() * 6).toFixed(1),
-          clickCount: Math.round(70000 + Math.random() * 20000),
-          clickRate: +(0.4 + Math.random() * 0.3).toFixed(2),
-          cpc: +(1.8 + Math.random() * 0.5).toFixed(2),
-        },
-        groupB: {
-          incomePerThousand: +(base * 1.1 + Math.random() * 20).toFixed(2),
-          estimatedIncome: +(base * 1260 * 1.1 + Math.random() * 5000).toFixed(2),
-          ecpm: +(base * 0.07 * 1.08 + Math.random() * 0.5).toFixed(2),
-          requestValuePerThousand: +(base * 0.8 * 1.07 + Math.random() * 10).toFixed(2),
-          requestCount: Math.round(18500000 + Math.random() * 4000000),
-          returnRate: +(85.5 + Math.random() * 4).toFixed(1),
-          bidSuccessCount: Math.round(14500000 + Math.random() * 3000000),
-          bidSuccessRate: +(75.5 + Math.random() * 5).toFixed(1),
-          impressionCount: Math.round(15000000 + Math.random() * 3000000),
-          winShowRate: +(72 + Math.random() * 6).toFixed(1),
-          clickCount: Math.round(78000 + Math.random() * 20000),
-          clickRate: +(0.45 + Math.random() * 0.3).toFixed(2),
-          cpc: +(1.85 + Math.random() * 0.5).toFixed(2),
-        },
-      });
-    }
-    return days;
-  }, [abReportDateRange]);
-
-  const abReportData = useMemo(() => generateABReportData(), [generateABReportData]);
+  // A/B测试报表数据：根据筛选条件从mock数据中获取
+  const abReportData = useMemo(() => {
+    const key = `${abReportScene}-${abReportPlatform}`;
+    const mockRows = MOCK_AB_REPORT_DATA[key] || [];
+    // 按日期范围过滤
+    const fromStr = abReportDateRange.from.toISOString().slice(0, 10);
+    const toStr = abReportDateRange.to.toISOString().slice(0, 10);
+    return mockRows.filter(row => row.date >= fromStr && row.date <= toStr);
+  }, [abReportScene, abReportPlatform, abReportDateRange]);
 
   // A/B测试汇总数据
   const abReportSummary = useMemo(() => {
@@ -2267,7 +2197,7 @@ function WaterfallManagementPageContent() {
                   </Select>
                 </div>
                 <Button
-                  onClick={() => generateReportData()}
+                  onClick={() => {}}
                   className="bg-[#FF4D88] hover:bg-[#FF3370] text-white h-8 px-5 text-sm"
                 >
                   查询
@@ -2354,7 +2284,7 @@ function WaterfallManagementPageContent() {
                         <TableCell className="text-[#1D2129]">{row.date}</TableCell>
                         {REPORT_METRICS.map(m => (
                           <TableCell key={m.value} className="whitespace-nowrap">
-                            {formatReportValue(Number((row as Record<string, unknown>)[m.value]), m.value)}
+                            {formatReportValue(Number(row[m.value as keyof ReportRow]), m.value)}
                           </TableCell>
                         ))}
                       </TableRow>
@@ -2503,19 +2433,9 @@ function WaterfallManagementPageContent() {
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-blue-500 text-white font-bold text-sm">A</span>
                       <span className="ml-2 text-sm">对照组</span>
                     </TableCell>
-                    <TableCell className="text-right font-mono">125.80</TableCell>
-                    <TableCell className="text-right font-mono">158,240.50</TableCell>
-                    <TableCell className="text-right font-mono">8.52</TableCell>
-                    <TableCell className="text-right font-mono">98.50</TableCell>
-                    <TableCell className="text-right font-mono">20,044,000</TableCell>
-                    <TableCell className="text-right font-mono">85.3%</TableCell>
-                    <TableCell className="text-right font-mono">15,234,000</TableCell>
-                    <TableCell className="text-right font-mono">76.0%</TableCell>
-                    <TableCell className="text-right font-mono">15,730,000</TableCell>
-                    <TableCell className="text-right font-mono">72.5%</TableCell>
-                    <TableCell className="text-right font-mono">78,650</TableCell>
-                    <TableCell className="text-right font-mono">0.50%</TableCell>
-                    <TableCell className="text-right font-mono">2.01</TableCell>
+                    {AB_REPORT_METRICS.map(m => (
+                      <TableCell key={m.value} className="text-right font-mono">{formatABValue(m.value, abReportSummary.groupA[m.value])}</TableCell>
+                    ))}
                   </TableRow>
                   {/* B测试组 */}
                   <TableRow>
@@ -2523,36 +2443,18 @@ function WaterfallManagementPageContent() {
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-orange-500 text-white font-bold text-sm">B</span>
                       <span className="ml-2 text-sm">测试组</span>
                     </TableCell>
-                    <TableCell className="text-right font-mono">138.20</TableCell>
-                    <TableCell className="text-right font-mono">173,910.80</TableCell>
-                    <TableCell className="text-right font-mono">9.15</TableCell>
-                    <TableCell className="text-right font-mono">105.20</TableCell>
-                    <TableCell className="text-right font-mono">20,331,600</TableCell>
-                    <TableCell className="text-right font-mono">87.1%</TableCell>
-                    <TableCell className="text-right font-mono">15,858,000</TableCell>
-                    <TableCell className="text-right font-mono">78.0%</TableCell>
-                    <TableCell className="text-right font-mono">16,510,800</TableCell>
-                    <TableCell className="text-right font-mono">74.2%</TableCell>
-                    <TableCell className="text-right font-mono">85,806</TableCell>
-                    <TableCell className="text-right font-mono">0.52%</TableCell>
-                    <TableCell className="text-right font-mono">2.03</TableCell>
+                    {AB_REPORT_METRICS.map(m => (
+                      <TableCell key={m.value} className="text-right font-mono">{formatABValue(m.value, abReportSummary.groupB[m.value])}</TableCell>
+                    ))}
                   </TableRow>
                   {/* 对比行 */}
                   <TableRow className="bg-green-50">
                     <TableCell className="text-center text-sm font-medium text-[#1D2129]">对比涨幅</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+9.86%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+9.90%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+7.39%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+6.80%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+1.43%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+2.11%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+4.10%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+2.63%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+4.96%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+2.34%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+9.10%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+4.00%</TableCell>
-                    <TableCell className="text-right font-mono text-green-500">+1.00%</TableCell>
+                    {AB_REPORT_METRICS.map(m => (
+                      <TableCell key={m.value} className="text-right font-mono text-green-500">
+                        {abReportSummary.comparison[m.value] >= 0 ? '+' : ''}{abReportSummary.comparison[m.value].toFixed(2)}%
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableBody>
               </Table>
@@ -2575,7 +2477,7 @@ function WaterfallManagementPageContent() {
                   </Select>
                   <div className="flex items-center gap-1 text-sm text-[#4E5969] border border-[#E5E6EB] rounded px-2 py-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>2026-05-19 → 2026-05-26</span>
+                    <span>{abReportDateRange.from.toISOString().slice(0, 10)} &rarr; {abReportDateRange.to.toISOString().slice(0, 10)}</span>
                   </div>
                 </div>
               </div>
