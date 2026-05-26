@@ -1692,16 +1692,23 @@ function WaterfallManagementPageContent() {
                       <TableCell className="text-[#1D2129]">{code.slotName}</TableCell>
                       <TableCell>
                         {(() => {
+                          // adGroups.scene 使用英文(splash/interstitial/feed)，codePositions.scene 使用中文(开屏/插屏/信息流)
+                          const sceneCnToEn: Record<string, string> = {
+                            '\u5F00\u5C4F': 'splash', 'Banner': 'banner', '\u63D2\u5C4F': 'interstitial',
+                            '\u4FE1\u606F\u6D41': 'feed', '\u539F\u751F': 'native', '\u641C\u7D22': 'search',
+                            '\u6FC0\u52B1\u89C6\u9891': 'rewarded_video',
+                          };
+                          const sceneEn = sceneCnToEn[code.scene] || code.scene;
                           const boundGroups = adGroups.filter(group =>
-                            group.scene === code.scene && group.platforms.includes(code.platform) &&
+                            group.scene === sceneEn && group.platform === code.platform &&
                             group.adSources.some(src => src.codeId === code.codeId)
                           );
                           if (boundGroups.length === 0) {
                             return <span className="text-[#86909C]">-</span>;
                           }
-                          const sceneMap: Record<string, string> = {
-                            '\u5F00\u5C4F': 'splash', 'Banner': 'banner', '\u63D2\u5C4F': 'interstitial',
-                            '\u4FE1\u606F\u6D41': 'feed', '\u539F\u751F': 'native',
+                          const sceneEnToUrl: Record<string, string> = {
+                            'splash': 'splash', 'banner': 'banner', 'interstitial': 'interstitial',
+                            'feed': 'feed', 'native': 'native', 'search': 'search', 'rewarded_video': 'rewarded_video',
                           };
                           const platformMap: Record<string, string> = {
                             'Android': 'android', 'iOS': 'ios',
@@ -1709,7 +1716,7 @@ function WaterfallManagementPageContent() {
                           return (
                             <div className="flex flex-wrap gap-1">
                               {boundGroups.map((group) => {
-                                const sceneVal = sceneMap[code.scene] || 'splash';
+                                const sceneVal = sceneEnToUrl[group.scene] || group.scene;
                                 const platVal = platformMap[code.platform] || 'android';
                                 const url = `/?scene=${sceneVal}&platform=${platVal}&group=${group.id}`;
                                 return (
@@ -1720,7 +1727,7 @@ function WaterfallManagementPageContent() {
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-[#FFF1F0] text-[#FF4D88] hover:bg-[#FFE4E8] cursor-pointer transition-colors"
                                   >
-                                    {group.priority === Infinity ? '\u9ED8\u8BA4' : group.name}
+                                    {group.name}
                                     <ExternalLink className="h-3 w-3" />
                                   </a>
                                 );
