@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TimeSlotPicker } from '@/components/time-slot-picker';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Area, AreaChart, Legend } from 'recharts';
 import {
   DndContext,
   closestCenter,
@@ -49,6 +50,9 @@ import {
   ListOrdered,
   Zap,
   ExternalLink,
+  BarChart3,
+  GitCompare,
+  Calendar,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -351,7 +355,7 @@ export default function WaterfallManagementPage() {
 
 function WaterfallManagementPageContent() {
   // 页面切换状态
-  const [currentPage, setCurrentPage] = useState<'waterfall' | 'codePosition'>('waterfall');
+  const [currentPage, setCurrentPage] = useState<'waterfall' | 'codePosition' | 'report' | 'abTestReport'>('waterfall');
   
   // 状态管理
   const [activeScene, setActiveScene] = useState<AdScene>('splash');
@@ -614,6 +618,243 @@ function WaterfallManagementPageContent() {
     setPidAppliedPlatform(pidFilterPlatform);
     setPidAppliedSlot(pidFilterSlot);
     setCurrentPageNum(1);
+  };
+
+  // ==================== 综合报表状态 ====================
+  const [reportDateRange, setReportDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+    to: new Date(),
+  });
+  const [reportGroup, setReportGroup] = useState<string>('all');
+  const [reportMetric, setReportMetric] = useState<string>('incomePerThousand');
+  const [reportScene, setReportScene] = useState<string>('all');
+  const [reportPlatform, setReportPlatform] = useState<string>('all');
+
+  // 综合报表指标选项
+  const REPORT_METRICS = [
+    { value: 'incomePerThousand', label: '千人均收益' },
+    { value: 'estimatedIncome', label: '预估收入' },
+    { value: 'ecpm', label: 'eCPM' },
+    { value: 'requestValuePerThousand', label: '千次请求价值' },
+    { value: 'requestCount', label: '请求量' },
+    { value: 'returnRate', label: '返回率' },
+    { value: 'bidSuccessCount', label: '竞价成功数' },
+    { value: 'bidSuccessRate', label: '竞价成功率' },
+    { value: 'impressionCount', label: '展示量' },
+    { value: 'winShowRate', label: '竞胜展示率' },
+    { value: 'clickCount', label: '点击数' },
+    { value: 'clickRate', label: '点击率' },
+    { value: 'cpc', label: 'cpc' },
+  ];
+
+  // 生成模拟报表数据
+  const generateReportData = useCallback(() => {
+    const days: Array<{
+      date: string;
+      incomePerThousand: number;
+      estimatedIncome: number;
+      ecpm: number;
+      requestValuePerThousand: number;
+      requestCount: number;
+      returnRate: number;
+      bidSuccessCount: number;
+      bidSuccessRate: number;
+      impressionCount: number;
+      winShowRate: number;
+      clickCount: number;
+      clickRate: number;
+      cpc: number;
+    }> = [];
+    const fromDate = reportDateRange.from;
+    const toDate = reportDateRange.to;
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    for (let d = new Date(fromDate); d <= toDate; d = new Date(d.getTime() + dayMs)) {
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      days.push({
+        date: dateStr,
+        incomePerThousand: +(100 + Math.random() * 60).toFixed(2),
+        estimatedIncome: +(350000 + Math.random() * 200000).toFixed(2),
+        ecpm: +(5 + Math.random() * 8).toFixed(2),
+        requestValuePerThousand: +(70 + Math.random() * 60).toFixed(2),
+        requestCount: Math.floor(3000000 + Math.random() * 2000000),
+        returnRate: +(75 + Math.random() * 15).toFixed(2),
+        bidSuccessCount: Math.floor(1500000 + Math.random() * 2000000),
+        bidSuccessRate: +(60 + Math.random() * 25).toFixed(2),
+        impressionCount: Math.floor(1000000 + Math.random() * 1500000),
+        winShowRate: +(60 + Math.random() * 20).toFixed(2),
+        clickCount: Math.floor(5000 + Math.random() * 10000),
+        clickRate: +(0.3 + Math.random() * 0.5).toFixed(2),
+        cpc: +(1.5 + Math.random() * 1.5).toFixed(2),
+      });
+    }
+    return days;
+  }, [reportDateRange]);
+
+  const reportData = useMemo(() => generateReportData(), [generateReportData]);
+
+  // 报表总计行
+  const reportTotals = useMemo(() => {
+    if (reportData.length === 0) return null;
+    const total: Record<string, number> = {};
+    const sumFields = ['estimatedIncome', 'requestCount', 'bidSuccessCount', 'impressionCount', 'clickCount'];
+    const avgFields = ['incomePerThousand', 'ecpm', 'requestValuePerThousand', 'returnRate', 'bidSuccessRate', 'winShowRate', 'clickRate', 'cpc'];
+
+    reportData.forEach(row => {
+      sumFields.forEach(f => { total[f] = (total[f] || 0) + Number((row as Record<string, unknown>)[f]); });
+    });
+    avgFields.forEach(f => {
+      total[f] = reportData.reduce((s, r) => s + Number((r as Record<string, unknown>)[f]), 0) / reportData.length;
+    });
+    return total;
+  }, [reportData]);
+
+  // 格式化报表数值
+  const formatReportValue = (value: number, metric: string) => {
+    if (metric === 'returnRate' || metric === 'bidSuccessRate' || metric === 'winShowRate' || metric === 'clickRate') {
+      return `${value.toFixed(2)}%`;
+    }
+    if (metric === 'requestCount' || metric === 'bidSuccessCount' || metric === 'impressionCount' || metric === 'clickCount') {
+      return Math.floor(value).toLocaleString();
+    }
+    if (metric === 'estimatedIncome') {
+      return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return value.toFixed(2);
+  };
+
+  // 导出报表
+  const handleExportReport = () => {
+    const headers = ['日期', ...REPORT_METRICS.map(m => m.label)];
+    const rows = reportData.map(row =>
+      [row.date, ...REPORT_METRICS.map(m => formatReportValue(Number((row as Record<string, unknown>)[m.value]), m.value))]
+    );
+    const totalsRow = ['总计', ...REPORT_METRICS.map(m => formatReportValue(Number(reportTotals?.[m.value] || 0), m.value))];
+    const csv = [headers.join(','), ...rows.map(r => r.join(',')), totalsRow.join(',')].join('\n');
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `综合报表_${reportDateRange.from.toISOString().slice(0, 10)}_${reportDateRange.to.toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ==================== A/B测试报表状态 ====================
+  const [abReportTab, setAbReportTab] = useState<'running' | 'ended'>('running');
+  const [abReportGroup, setAbReportGroup] = useState<string>('all');
+  const [abReportMetric, setAbReportMetric] = useState<string>('incomePerThousand');
+  const [abReportDateRange, setAbReportDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    to: new Date(),
+  });
+
+  // A/B测试报表数据指标（复用综合报表指标）
+  const AB_REPORT_METRICS = REPORT_METRICS;
+
+  // 生成A/B测试报表数据
+  const generateABReportData = useCallback(() => {
+    const days: { date: string; groupA: Record<string, number>; groupB: Record<string, number> }[] = [];
+    const dayCount = Math.ceil((abReportDateRange.to.getTime() - abReportDateRange.from.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    for (let i = 0; i < dayCount; i++) {
+      const date = new Date(abReportDateRange.from.getTime() + i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().slice(0, 10);
+      const base = 100 + Math.random() * 50;
+      days.push({
+        date: dateStr,
+        groupA: {
+          incomePerThousand: +(base + Math.random() * 20).toFixed(2),
+          estimatedIncome: +(base * 1260 + Math.random() * 5000).toFixed(2),
+          ecpm: +(base * 0.07 + Math.random() * 0.5).toFixed(2),
+          requestValuePerThousand: +(base * 0.8 + Math.random() * 10).toFixed(2),
+          requestCount: Math.round(18000000 + Math.random() * 4000000),
+          returnRate: +(84 + Math.random() * 4).toFixed(1),
+          bidSuccessCount: Math.round(14000000 + Math.random() * 3000000),
+          bidSuccessRate: +(74 + Math.random() * 5).toFixed(1),
+          impressionCount: Math.round(14000000 + Math.random() * 3000000),
+          winShowRate: +(70 + Math.random() * 6).toFixed(1),
+          clickCount: Math.round(70000 + Math.random() * 20000),
+          clickRate: +(0.4 + Math.random() * 0.3).toFixed(2),
+          cpc: +(1.8 + Math.random() * 0.5).toFixed(2),
+        },
+        groupB: {
+          incomePerThousand: +(base * 1.1 + Math.random() * 20).toFixed(2),
+          estimatedIncome: +(base * 1260 * 1.1 + Math.random() * 5000).toFixed(2),
+          ecpm: +(base * 0.07 * 1.08 + Math.random() * 0.5).toFixed(2),
+          requestValuePerThousand: +(base * 0.8 * 1.07 + Math.random() * 10).toFixed(2),
+          requestCount: Math.round(18500000 + Math.random() * 4000000),
+          returnRate: +(85.5 + Math.random() * 4).toFixed(1),
+          bidSuccessCount: Math.round(14500000 + Math.random() * 3000000),
+          bidSuccessRate: +(75.5 + Math.random() * 5).toFixed(1),
+          impressionCount: Math.round(15000000 + Math.random() * 3000000),
+          winShowRate: +(72 + Math.random() * 6).toFixed(1),
+          clickCount: Math.round(78000 + Math.random() * 20000),
+          clickRate: +(0.45 + Math.random() * 0.3).toFixed(2),
+          cpc: +(1.85 + Math.random() * 0.5).toFixed(2),
+        },
+      });
+    }
+    return days;
+  }, [abReportDateRange]);
+
+  const abReportData = useMemo(() => generateABReportData(), [generateABReportData]);
+
+  // A/B测试汇总数据
+  const abReportSummary = useMemo(() => {
+    const sumA: Record<string, number> = {};
+    const sumB: Record<string, number> = {};
+    const metricKeys = AB_REPORT_METRICS.map(m => m.value);
+    metricKeys.forEach(key => { sumA[key] = 0; sumB[key] = 0; });
+
+    abReportData.forEach(d => {
+      metricKeys.forEach(key => {
+        sumA[key] += d.groupA[key];
+        sumB[key] += d.groupB[key];
+      });
+    });
+
+    // 对比率类指标取平均而非求和
+    const rateKeys = ['returnRate', 'bidSuccessRate', 'winShowRate', 'clickRate'];
+    rateKeys.forEach(key => {
+      sumA[key] = sumA[key] / abReportData.length;
+      sumB[key] = sumB[key] / abReportData.length;
+    });
+
+    const comparison: Record<string, number> = {};
+    metricKeys.forEach(key => {
+      if (sumA[key] === 0) { comparison[key] = 0; return; }
+      comparison[key] = +((sumB[key] - sumA[key]) / sumA[key] * 100);
+    });
+
+    return { groupA: sumA, groupB: sumB, comparison };
+  }, [abReportData, AB_REPORT_METRICS]);
+
+  // 格式化A/B报表值
+  const formatABValue = (key: string, value: number) => {
+    const rateKeys = ['returnRate', 'bidSuccessRate', 'winShowRate', 'clickRate'];
+    const intKeys = ['requestCount', 'bidSuccessCount', 'impressionCount', 'clickCount'];
+    if (rateKeys.includes(key)) return value.toFixed(1) + '%';
+    if (intKeys.includes(key)) return Math.round(value).toLocaleString();
+    return value.toFixed(2);
+  };
+
+  // 导出A/B测试报表
+  const handleExportABReport = () => {
+    const metricLabels = AB_REPORT_METRICS.map(m => m.label);
+    const headers = ['组别', ...metricLabels];
+    const rowA = ['A对照组', ...AB_REPORT_METRICS.map(m => formatABValue(m.value, abReportSummary.groupA[m.value]))];
+    const rowB = ['B测试组', ...AB_REPORT_METRICS.map(m => formatABValue(m.value, abReportSummary.groupB[m.value]))];
+    const rowComp = ['对比涨幅', ...AB_REPORT_METRICS.map(m => (abReportSummary.comparison[m.value] >= 0 ? '+' : '') + abReportSummary.comparison[m.value].toFixed(2) + '%')];
+
+    const csvContent = [headers, rowA, rowB, rowComp].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `AB测试报表_${abReportDateRange.from.toISOString().slice(0, 10)}_${abReportDateRange.to.toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // PID筛选后的列表（使用已应用值）
@@ -1177,6 +1418,28 @@ function WaterfallManagementPageContent() {
                     >
                       <span>PID管理</span>
                     </button>
+                    {/* 综合报表 */}
+                    <button
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm border-r-2 ${
+                        currentPage === 'report'
+                          ? 'bg-[#FFF7FA] text-[#1D2129] border-[#FF4D88]'
+                          : 'text-[#1D2129] border-transparent hover:bg-[#F9FAFB]'
+                      }`}
+                      onClick={() => setCurrentPage('report')}
+                    >
+                      <span>综合报表</span>
+                    </button>
+                    <button
+                      className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm ${
+                        currentPage === 'abTestReport'
+                          ? 'bg-[#FFF0F5] text-[#FF4D88] border-r-2 border-[#FF4D88]'
+                          : 'text-[#4B5563] hover:bg-[#F9FAFB]'
+                      }`}
+                      onClick={() => setCurrentPage('abTestReport')}
+                    >
+                      <GitCompare className="w-4 h-4" />
+                      <span>A/B测试报表</span>
+                    </button>
                   </div>
                 </>
               ) : (
@@ -1200,7 +1463,7 @@ function WaterfallManagementPageContent() {
             <span className="text-[#86909C]">ADX流量工具</span>
             <ChevronRightIcon className="w-4 h-4 text-[#C9CDD4]" />
             <span className={`font-medium ${currentPage === 'codePosition' ? 'text-[#1D2129]' : 'text-[#1D2129]'}`}>
-              {currentPage === 'waterfall' ? '流量分组管理' : 'PID管理'}
+              {currentPage === 'waterfall' ? '流量分组管理' : currentPage === 'codePosition' ? 'PID管理' : currentPage === 'report' ? '综合报表' : currentPage === 'abTestReport' ? 'A/B测试报表' : ''}
             </span>
           </div>
         </header>
@@ -1898,6 +2161,384 @@ function WaterfallManagementPageContent() {
                   </span>
                 </div>
               </div>
+            </div>
+          </React.Fragment>
+          )}
+
+          {/* ==================== 综合报表页面 ==================== */}
+          {currentPage === 'report' && (
+          <React.Fragment>
+            {/* 筛选区 */}
+            <div className="bg-white border-b border-[#E5E6EB] px-6 py-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#86909C] whitespace-nowrap">日期</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={reportDateRange.from.toISOString().slice(0, 10)}
+                      onChange={(e) => setReportDateRange(prev => ({ ...prev, from: new Date(e.target.value) }))}
+                      className="h-8 px-3 border border-[#E5E6EB] rounded-md text-sm"
+                    />
+                    <span className="text-[#86909C]">&rarr;</span>
+                    <input
+                      type="date"
+                      value={reportDateRange.to.toISOString().slice(0, 10)}
+                      onChange={(e) => setReportDateRange(prev => ({ ...prev, to: new Date(e.target.value) }))}
+                      className="h-8 px-3 border border-[#E5E6EB] rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#86909C] whitespace-nowrap">广告场景</span>
+                  <Select value={reportScene} onValueChange={setReportScene}>
+                    <SelectTrigger className="w-28 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部</SelectItem>
+                      {SCENE_ITEMS.map(s => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#86909C] whitespace-nowrap">平台</span>
+                  <Select value={reportPlatform} onValueChange={setReportPlatform}>
+                    <SelectTrigger className="w-28 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部</SelectItem>
+                      <SelectItem value="Android">安卓</SelectItem>
+                      <SelectItem value="iOS">iOS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#86909C] whitespace-nowrap">分组</span>
+                  <Select value={reportGroup} onValueChange={setReportGroup}>
+                    <SelectTrigger className="w-32 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部分组</SelectItem>
+                      {adGroups
+                        .filter(g => {
+                          if (reportScene !== 'all' && g.scene !== reportScene) return false;
+                          if (reportPlatform !== 'all' && g.platform !== reportPlatform) return false;
+                          return true;
+                        })
+                        .map(g => (
+                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={() => generateReportData()}
+                  className="bg-[#FF4D88] hover:bg-[#FF3370] text-white h-8 px-5 text-sm"
+                >
+                  查询
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto p-6 space-y-6">
+              {/* 数据图表区 */}
+              <div className="bg-white rounded-lg border border-[#E5E6EB] p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-[#4B5563]" />
+                    <span className="font-medium text-[#1D2129]">数据图表</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-[#86909C]">数据指标</span>
+                    <Select value={reportMetric} onValueChange={setReportMetric}>
+                      <SelectTrigger className="w-32 h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REPORT_METRICS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={reportData} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
+                      <defs>
+                        <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#86909C' }} tickLine={false} axisLine={{ stroke: '#E5E6EB' }} />
+                      <YAxis tick={{ fontSize: 12, fill: '#86909C' }} tickLine={false} axisLine={{ stroke: '#E5E6EB' }} />
+                      <RechartsTooltip
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E5E6EB' }}
+                        formatter={(value: number) => [formatReportValue(value, reportMetric), REPORT_METRICS.find(m => m.value === reportMetric)?.label]}
+                      />
+                      <Area type="monotone" dataKey={reportMetric} stroke="#3B82F6" fill="url(#colorMetric)" strokeWidth={2} dot={{ r: 4, fill: '#3B82F6', stroke: '#fff', strokeWidth: 2 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-end mt-3">
+                  <Button variant="outline" size="sm" onClick={handleExportReport} className="text-sm">
+                    导出
+                  </Button>
+                </div>
+              </div>
+
+              {/* 数据表格区 */}
+              <div className="bg-white rounded-lg border border-[#E5E6EB]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-[#F7F8FA]">
+                      <TableHead className="text-[#86909C] font-medium">日期</TableHead>
+                      {REPORT_METRICS.map(m => (
+                        <TableHead key={m.value} className="text-[#86909C] font-medium whitespace-nowrap">{m.label}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {/* 总计行 */}
+                    {reportTotals && (
+                      <TableRow className="bg-[#FAFBFC] font-medium text-[#86909C]">
+                        <TableCell>总计</TableCell>
+                        {REPORT_METRICS.map(m => (
+                          <TableCell key={m.value} className="whitespace-nowrap">
+                            {formatReportValue(Number(reportTotals[m.value] || 0), m.value)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    )}
+                    {/* 每日数据行 */}
+                    {reportData.map(row => (
+                      <TableRow key={row.date}>
+                        <TableCell className="text-[#1D2129]">{row.date}</TableCell>
+                        {REPORT_METRICS.map(m => (
+                          <TableCell key={m.value} className="whitespace-nowrap">
+                            {formatReportValue(Number((row as Record<string, unknown>)[m.value]), m.value)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </React.Fragment>
+          )}
+
+          {/* A/B测试报表页面 */}
+          {currentPage === 'abTestReport' && (
+          <React.Fragment>
+            {/* 页面标题和筛选 */}
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-lg font-bold text-[#1D2129]">A/B实验报表</h2>
+            </div>
+
+            {/* 状态标签页 */}
+            <div className="flex border-b border-[#E5E6EB] mb-4">
+              <button
+                className={`px-4 py-2 text-sm font-medium ${abReportTab === 'running' ? 'text-blue-500 border-b-2 border-blue-500' : 'text-[#86909C]'}`}
+                onClick={() => setAbReportTab('running')}
+              >
+                运行中A/B测试组
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium ${abReportTab === 'ended' ? 'text-blue-500 border-b-2 border-blue-500' : 'text-[#86909C]'}`}
+                onClick={() => setAbReportTab('ended')}
+              >
+                已结束A/B测试组
+              </button>
+            </div>
+
+            {/* 实验基础信息 */}
+            <div className="bg-white rounded-lg border border-[#E5E6EB] p-4 mb-6 flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[#86909C]">流量分组</span>
+                <Select value={abReportGroup} onValueChange={setAbReportGroup}>
+                  <SelectTrigger className="w-40 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="默认分组">默认分组</SelectItem>
+                    <SelectItem value="高价值用户组">高价值用户组</SelectItem>
+                    <SelectItem value="新用户组">新用户组</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-[#1D2129] font-medium">测试名称：瀑布流广告位eCPM优化测试</div>
+                <div className="text-xs text-[#86909C] mt-1">生效时间：2026-01-22 11:24:43 ~ 2026-02-02 10:40:22</div>
+              </div>
+              <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-500 rounded">运行中</span>
+            </div>
+
+            {/* A/B测试数据对比 */}
+            <div className="bg-white rounded-lg border border-[#E5E6EB] mb-6">
+              <div className="flex items-center justify-between p-4 border-b border-[#E5E6EB]">
+                <h3 className="font-medium text-[#1D2129]">A/B测试数据对比</h3>
+                <Button variant="outline" size="sm" className="text-sm" onClick={handleExportReport}>导出</Button>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#F7F8FA]">
+                    <TableHead className="text-[#86909C] font-medium text-center w-24">组别</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">千人均收益</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">预估收入</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">eCPM</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">千次请求价值</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">请求量</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">返回率</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">竞价成功数</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">竞价成功率</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">展示量</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">竞胜展示率</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">点击数</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">点击率</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">cpc</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* A对照组 */}
+                  <TableRow>
+                    <TableCell className="text-center">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-blue-500 text-white font-bold text-sm">A</span>
+                      <span className="ml-2 text-sm">对照组</span>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">125.80</TableCell>
+                    <TableCell className="text-right font-mono">158,240.50</TableCell>
+                    <TableCell className="text-right font-mono">8.52</TableCell>
+                    <TableCell className="text-right font-mono">98.50</TableCell>
+                    <TableCell className="text-right font-mono">20,044,000</TableCell>
+                    <TableCell className="text-right font-mono">85.3%</TableCell>
+                    <TableCell className="text-right font-mono">15,234,000</TableCell>
+                    <TableCell className="text-right font-mono">76.0%</TableCell>
+                    <TableCell className="text-right font-mono">15,730,000</TableCell>
+                    <TableCell className="text-right font-mono">72.5%</TableCell>
+                    <TableCell className="text-right font-mono">78,650</TableCell>
+                    <TableCell className="text-right font-mono">0.50%</TableCell>
+                    <TableCell className="text-right font-mono">2.01</TableCell>
+                  </TableRow>
+                  {/* B测试组 */}
+                  <TableRow>
+                    <TableCell className="text-center">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-orange-500 text-white font-bold text-sm">B</span>
+                      <span className="ml-2 text-sm">测试组</span>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">138.20</TableCell>
+                    <TableCell className="text-right font-mono">173,910.80</TableCell>
+                    <TableCell className="text-right font-mono">9.15</TableCell>
+                    <TableCell className="text-right font-mono">105.20</TableCell>
+                    <TableCell className="text-right font-mono">20,331,600</TableCell>
+                    <TableCell className="text-right font-mono">87.1%</TableCell>
+                    <TableCell className="text-right font-mono">15,858,000</TableCell>
+                    <TableCell className="text-right font-mono">78.0%</TableCell>
+                    <TableCell className="text-right font-mono">16,510,800</TableCell>
+                    <TableCell className="text-right font-mono">74.2%</TableCell>
+                    <TableCell className="text-right font-mono">85,806</TableCell>
+                    <TableCell className="text-right font-mono">0.52%</TableCell>
+                    <TableCell className="text-right font-mono">2.03</TableCell>
+                  </TableRow>
+                  {/* 对比行 */}
+                  <TableRow className="bg-green-50">
+                    <TableCell className="text-center text-sm font-medium text-[#1D2129]">对比涨幅</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+9.86%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+9.90%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+7.39%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+6.80%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+1.43%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+2.11%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+4.10%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+2.63%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+4.96%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+2.34%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+9.10%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+4.00%</TableCell>
+                    <TableCell className="text-right font-mono text-green-500">+1.00%</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* A/B测试图表 */}
+            <div className="bg-white rounded-lg border border-[#E5E6EB] mb-6 p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium text-[#1D2129]">A/B测试图表</h3>
+                <div className="flex items-center gap-3">
+                  <Select value={abReportMetric} onValueChange={setAbReportMetric}>
+                    <SelectTrigger className="w-36 h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REPORT_METRICS.map(m => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center gap-1 text-sm text-[#4E5969] border border-[#E5E6EB] rounded px-2 py-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>2026-05-19 → 2026-05-26</span>
+                  </div>
+                </div>
+              </div>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={abReportData.map(d => ({
+                    date: d.date,
+                    groupA: d.groupA[abReportMetric] ?? 0,
+                    groupB: d.groupB[abReportMetric] ?? 0,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F2F3F5" />
+                    <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#C9CDD4" />
+                    <YAxis tick={{ fontSize: 12 }} stroke="#C9CDD4" />
+                    <RechartsTooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="groupA" name="A对照组" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6', r: 3 }} />
+                    <Line type="monotone" dataKey="groupB" name="B测试组" stroke="#F97316" strokeWidth={2} dot={{ fill: '#F97316', r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* 数据明细 */}
+            <div className="bg-white rounded-lg border border-[#E5E6EB]">
+              <div className="flex items-center justify-between p-4 border-b border-[#E5E6EB]">
+                <h3 className="font-medium text-[#1D2129]">数据明细 - {REPORT_METRICS.find(m => m.value === abReportMetric)?.label}</h3>
+                <Button variant="outline" size="sm" className="text-sm" onClick={handleExportReport}>导出</Button>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#F7F8FA]">
+                    <TableHead className="text-[#86909C] font-medium">日期</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">A对照组</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">B测试组</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">对比涨幅</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {abReportData.map((row: { date: string; groupA: Record<string, number>; groupB: Record<string, number> }) => {
+                    const valA = row.groupA[abReportMetric] ?? 0;
+                    const valB = row.groupB[abReportMetric] ?? 0;
+                    const change = valA > 0 ? ((valB - valA) / valA * 100) : 0;
+                    return (
+                      <TableRow key={row.date}>
+                        <TableCell className="text-sm">{row.date}</TableCell>
+                        <TableCell className="text-right font-mono">{valA.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-mono">{valB.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-mono text-green-500">+{change.toFixed(2)}%</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
           </React.Fragment>
           )}
