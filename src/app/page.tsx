@@ -1533,7 +1533,7 @@ function WaterfallManagementPageContent() {
         )}
 
         <div className="flex-1 overflow-auto p-6">
-          {currentPage === 'waterfall' ? (
+          {currentPage === 'waterfall' && (
           <React.Fragment>
           {/* 分组管理区 */}
           <div className="bg-white rounded-lg border border-[#E5E6EB] mb-6">
@@ -1890,7 +1890,8 @@ function WaterfallManagementPageContent() {
           </div>
 
           </React.Fragment>
-          ) : (
+          )}
+          {currentPage === 'codePosition' && (
           /* ==================== PID管理页面 ==================== */
           <React.Fragment>
             {/* 获取代码位绑定的分组 */}
