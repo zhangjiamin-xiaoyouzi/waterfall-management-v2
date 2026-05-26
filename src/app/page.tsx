@@ -1437,7 +1437,6 @@ function WaterfallManagementPageContent() {
                       }`}
                       onClick={() => setCurrentPage('abTestReport')}
                     >
-                      <GitCompare className="w-4 h-4" />
                       <span>A/B测试报表</span>
                     </button>
                   </div>
