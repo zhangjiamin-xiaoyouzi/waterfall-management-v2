@@ -2275,6 +2275,7 @@ function WaterfallManagementPageContent() {
               </div>
             </div>
 
+            {reportScene !== 'all' && reportPlatform !== 'all' && reportSlot !== 'all' && reportGroup !== 'all' ? (
             <div className="flex-1 overflow-auto p-6 space-y-6">
               {/* 数据图表区 */}
               <div className="bg-white rounded-lg border border-[#E5E6EB] p-5">
@@ -2362,6 +2363,14 @@ function WaterfallManagementPageContent() {
                 </Table>
               </div>
             </div>
+            ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <BarChart3 className="w-12 h-12 text-[#C9CDD4] mx-auto mb-3" />
+                <p className="text-[#86909C] text-sm">请选择广告场景、平台、广告位和流量分组后查看数据</p>
+              </div>
+            </div>
+            )}
           </React.Fragment>
           )}
 
@@ -2451,6 +2460,8 @@ function WaterfallManagementPageContent() {
               </Button>
             </div>
 
+            {abReportScene !== 'all' && abReportPlatform !== 'all' && abReportSlot !== 'all' && abReportGroup !== 'all' ? (
+            <>
             {/* 实验基础信息 */}
             <div className="bg-white rounded-lg border border-[#E5E6EB] p-4 mb-6 flex items-center gap-6">
               <div className="flex-1">
@@ -2619,6 +2630,13 @@ function WaterfallManagementPageContent() {
                 </TableBody>
               </Table>
             </div>
+            </>
+            ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-[#86909C]">
+              <BarChart3 className="w-12 h-12 mb-3 opacity-40" />
+              <p className="text-base">请选择广告场景、平台、广告位和流量分组后查看数据</p>
+            </div>
+            )}
           </React.Fragment>
           )}
         </div>
