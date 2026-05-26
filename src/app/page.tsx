@@ -356,6 +356,9 @@ function WaterfallManagementPageContent() {
   // 状态管理
   const [activeScene, setActiveScene] = useState<AdScene>('splash');
   const [selectedPlatform, setSelectedPlatform] = useState<'Android' | 'iOS'>('iOS');
+  // 已应用的筛选值（点击查询后才更新，用于实际过滤分组）
+  const [appliedScene, setAppliedScene] = useState<AdScene>('splash');
+  const [appliedPlatform, setAppliedPlatform] = useState<'Android' | 'iOS'>('iOS');
   
   const searchParams = useSearchParams();
   
@@ -366,14 +369,22 @@ function WaterfallManagementPageContent() {
     const groupParam = searchParams.get('group') as string | null;
     if (sceneParam && ['splash', 'interstitial', 'feed', 'search'].includes(sceneParam)) {
       setActiveScene(sceneParam);
+      setAppliedScene(sceneParam);
     }
     if (platformParam && ['Android', 'iOS'].includes(platformParam)) {
       setSelectedPlatform(platformParam);
+      setAppliedPlatform(platformParam);
     }
     if (groupParam) {
       setSelectedGroupId(groupParam);
     }
   }, [searchParams]);
+
+  // 流量分组查询按钮：将待选值应用到已应用值
+  const handleGroupSearch = () => {
+    setAppliedScene(activeScene);
+    setAppliedPlatform(selectedPlatform);
+  };
 
   const [dateRange, setDateRange] = useState({
     start: new Date().toISOString().split('T')[0],
@@ -449,7 +460,7 @@ function WaterfallManagementPageContent() {
       setNewGroupName(editingGroup.name);
       setNewGroupPriority(editingGroup.priority);
       // 仅加载当前场景匹配的广告位
-      const sceneSlots = SCENE_SLOT_IDS[activeScene];
+      const sceneSlots = SCENE_SLOT_IDS[appliedScene];
       setNewGroupSlots((editingGroup.adSlots || []).filter(slot => sceneSlots.includes(slot)));
       setNewGroupRules(editingGroup.rules || []);
     } else {
@@ -574,10 +585,14 @@ function WaterfallManagementPageContent() {
   const [showRolloutConfirm, setShowRolloutConfirm] = useState(false);
   const [rolloutTargetGroup, setRolloutTargetGroup] = useState<'A' | 'B'>('A');
 
-  // PID管理筛选状态
+  // PID管理筛选状态（待选值，点击查询后才应用）
   const [pidFilterScene, setPidFilterScene] = useState<string>('all');
   const [pidFilterPlatform, setPidFilterPlatform] = useState<string>('all');
   const [pidFilterSlot, setPidFilterSlot] = useState<string>('all');
+  // PID管理筛选状态（已应用值，用于实际过滤）
+  const [pidAppliedScene, setPidAppliedScene] = useState<string>('all');
+  const [pidAppliedPlatform, setPidAppliedPlatform] = useState<string>('all');
+  const [pidAppliedSlot, setPidAppliedSlot] = useState<string>('all');
 
   // 中文场景 -> 英文场景映射（用于筛选比较）
   const pidSceneCnToEn: Record<string, string> = {
@@ -587,11 +602,19 @@ function WaterfallManagementPageContent() {
     '搜索': 'search',
   };
 
-  // PID筛选后的列表
+  // PID查询按钮：将待选值应用到已应用值
+  const handlePidSearch = () => {
+    setPidAppliedScene(pidFilterScene);
+    setPidAppliedPlatform(pidFilterPlatform);
+    setPidAppliedSlot(pidFilterSlot);
+    setCurrentPageNum(1);
+  };
+
+  // PID筛选后的列表（使用已应用值）
   const filteredCodePositions = codePositions.filter((code) => {
-    if (pidFilterScene !== 'all' && (pidSceneCnToEn[code.scene] || code.scene) !== pidFilterScene) return false;
-    if (pidFilterPlatform !== 'all' && code.platform !== pidFilterPlatform) return false;
-    if (pidFilterSlot !== 'all' && code.slot !== pidFilterSlot) return false;
+    if (pidAppliedScene !== 'all' && (pidSceneCnToEn[code.scene] || code.scene) !== pidAppliedScene) return false;
+    if (pidAppliedPlatform !== 'all' && code.platform !== pidAppliedPlatform) return false;
+    if (pidAppliedSlot !== 'all' && code.slot !== pidAppliedSlot) return false;
     return true;
   });
 
@@ -681,9 +704,9 @@ function WaterfallManagementPageContent() {
     setShowAddCodeDialog(false);
   }, [newCodeForm, editingCodePosition]);
 
-  // 根据广告场景+平台精确筛选分组（每个scene+platform独立）
+  // 根据广告场景+平台精确筛选分组（使用已应用的筛选值）
   const filteredAdGroups = adGroups.filter((group) => {
-    return group.scene === activeScene && group.platform === selectedPlatform;
+    return group.scene === appliedScene && group.platform === appliedPlatform;
   });
 
   // 默认选中第一个场景可见的非默认分组（priority 最小），并在数据更新时保持同步
@@ -716,7 +739,7 @@ function WaterfallManagementPageContent() {
         }
       }
     }
-  }, [adGroups, activeScene, selectedPlatform]);
+  }, [adGroups, appliedScene, appliedPlatform]);
 
   // 当广告场景或平台切换时，自动选中筛选后第一个分组
   useEffect(() => {
@@ -729,7 +752,7 @@ function WaterfallManagementPageContent() {
         setSelectedGroupId(firstGroup?.id || filteredAdGroups[0]?.id || '');
       }
     }
-  }, [activeScene, selectedPlatform, filteredAdGroups, selectedGroupId]);
+  }, [appliedScene, appliedPlatform, filteredAdGroups, selectedGroupId]);
 
   // 获取当前选中的分组（从筛选后的分组中选），优先选非默认分组
   const currentGroup = filteredAdGroups.find((g) => g.id === selectedGroupId) 
@@ -916,15 +939,15 @@ function WaterfallManagementPageContent() {
       }
       setEditingGroup(null);
     } else {
-      // 新建模式：自动带入当前场景和平台
+      // 新建模式：自动带入当前已应用的场景和平台
       const newGroup: AdGroup = {
         id: `group-${Date.now()}`,
         name: newGroupName,
         priority: newGroupPriority,
-        platforms: [selectedPlatform],
+        platforms: [appliedPlatform],
         adSlots: newGroupSlots,
-        scene: activeScene,
-        platform: selectedPlatform,
+        scene: appliedScene,
+        platform: appliedPlatform,
         rules: newGroupRules,
         status: 'enabled',
         floorPrice: 0,
@@ -952,7 +975,7 @@ function WaterfallManagementPageContent() {
     setNewGroupSlots([]);
     setNewGroupRules([]);
     setShowAddGroupDialog(false);
-  }, [newGroupName, newGroupPriority, newGroupSlots, newGroupRules, editingGroup, activeScene, selectedPlatform]);
+  }, [newGroupName, newGroupPriority, newGroupSlots, newGroupRules, editingGroup, appliedScene, appliedPlatform]);
 
   // 复制分组 - 打开添加弹窗并填充配置
   const handleCopyGroup = useCallback((group: AdGroup) => {
@@ -1230,6 +1253,12 @@ function WaterfallManagementPageContent() {
                 </SelectContent>
               </Select>
             </div>
+            <Button
+              className="bg-[#FF4D88] hover:bg-[#E8447A] text-white h-8 px-4"
+              onClick={handleGroupSearch}
+            >
+              查询
+            </Button>
           </div>
         </div>
         )}
@@ -1336,7 +1365,7 @@ function WaterfallManagementPageContent() {
                     <span className="text-sm text-[#1D2129]">广告位：</span>
                     <div className="flex flex-wrap gap-1">
                       {(() => {
-                        const sceneSlotIds = SCENE_SLOT_IDS[activeScene as AdScene] || [];
+                        const sceneSlotIds = SCENE_SLOT_IDS[appliedScene as AdScene] || [];
                         const filteredSlots = (currentGroup.adSlots || []).filter(slotId => sceneSlotIds.includes(slotId));
                         return filteredSlots.length > 0 ? (
                           filteredSlots.map((slotId, index) => {
@@ -1474,7 +1503,7 @@ function WaterfallManagementPageContent() {
                               setAbTestConfig(draft.config);
                               setAbTestDraftData(draft);
                             }
-                            router.push(`/ab-test/create?groupId=${currentGroup?.id}&scene=${activeScene}&platform=${selectedPlatform}`);
+                            router.push(`/ab-test/create?groupId=${currentGroup?.id}&scene=${appliedScene}&platform=${appliedPlatform}`);
                           }}
                         >
                           编辑A/B测试
@@ -1492,7 +1521,7 @@ function WaterfallManagementPageContent() {
                             const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
                             setAbTestName(`${currentGroup.name}_正式_测试_${timeStr}`);
                           }
-                          router.push(`/ab-test/create?groupId=${currentGroup?.id}&scene=${activeScene}&platform=${selectedPlatform}`);
+                          router.push(`/ab-test/create?groupId=${currentGroup?.id}&scene=${appliedScene}&platform=${appliedPlatform}`);
                         }}
                       >
                         创建A/B测试
@@ -1608,38 +1637,53 @@ function WaterfallManagementPageContent() {
             {/* 筛选条件 + 操作按钮 */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <Select value={pidFilterScene} onValueChange={(v) => { setPidFilterScene(v); setPidFilterSlot('all'); setCurrentPageNum(1); }}>
-                  <SelectTrigger className="w-32 h-8 text-sm">
-                    <SelectValue placeholder="广告场景" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部场景</SelectItem>
-                    {SCENE_ITEMS.map((scene) => (
-                      <SelectItem key={scene.value} value={scene.value}>{scene.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={pidFilterPlatform} onValueChange={(v) => { setPidFilterPlatform(v); setCurrentPageNum(1); }}>
-                  <SelectTrigger className="w-28 h-8 text-sm">
-                    <SelectValue placeholder="平台" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部平台</SelectItem>
-                    <SelectItem value="Android">安卓</SelectItem>
-                    <SelectItem value="iOS">iOS</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={pidFilterSlot} onValueChange={(v) => { setPidFilterSlot(v); setCurrentPageNum(1); }}>
-                  <SelectTrigger className="w-36 h-8 text-sm">
-                    <SelectValue placeholder="广告位" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部广告位</SelectItem>
-                    {(pidFilterScene === 'all' ? Object.values(SCENE_SLOT_IDS).flat() : (SCENE_SLOT_IDS[pidFilterScene as AdScene] || [])).map((slotId) => (
-                      <SelectItem key={slotId} value={slotId}>{slotId} - {SLOT_NAME_MAP[slotId]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm text-[#4E5969] whitespace-nowrap">广告场景</span>
+                  <Select value={pidFilterScene} onValueChange={(v) => { setPidFilterScene(v); setPidFilterSlot('all'); }}>
+                    <SelectTrigger className="w-32 h-8 text-sm">
+                      <SelectValue placeholder="全部场景" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部场景</SelectItem>
+                      {SCENE_ITEMS.map((scene) => (
+                        <SelectItem key={scene.value} value={scene.value}>{scene.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm text-[#4E5969] whitespace-nowrap">平台</span>
+                  <Select value={pidFilterPlatform} onValueChange={(v) => { setPidFilterPlatform(v); }}>
+                    <SelectTrigger className="w-28 h-8 text-sm">
+                      <SelectValue placeholder="全部平台" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部平台</SelectItem>
+                      <SelectItem value="Android">安卓</SelectItem>
+                      <SelectItem value="iOS">iOS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm text-[#4E5969] whitespace-nowrap">广告位</span>
+                  <Select value={pidFilterSlot} onValueChange={(v) => { setPidFilterSlot(v); }}>
+                    <SelectTrigger className="w-36 h-8 text-sm">
+                      <SelectValue placeholder="全部广告位" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部广告位</SelectItem>
+                      {(pidFilterScene === 'all' ? Object.values(SCENE_SLOT_IDS).flat() : (SCENE_SLOT_IDS[pidFilterScene as AdScene] || [])).map((slotId) => (
+                        <SelectItem key={slotId} value={slotId}>{slotId} - {SLOT_NAME_MAP[slotId]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  className="bg-[#FF4D88] hover:bg-[#E8447A] text-white h-8 px-4"
+                  onClick={handlePidSearch}
+                >
+                  查询
+                </Button>
               </div>
               <Button
                 className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
@@ -1932,7 +1976,7 @@ function WaterfallManagementPageContent() {
             <div className="flex items-center">
               <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">广告场景</label>
               <span className="text-sm text-[#86909C] bg-[#F5F5F5] px-3 py-1.5 rounded">
-                {SCENE_ITEMS.find(s => s.value === activeScene)?.label || '-'}
+                {SCENE_ITEMS.find(s => s.value === appliedScene)?.label || '-'}
               </span>
             </div>
 
@@ -1940,7 +1984,7 @@ function WaterfallManagementPageContent() {
             <div className="flex items-center">
               <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">平台</label>
               <span className="text-sm text-[#86909C] bg-[#F5F5F5] px-3 py-1.5 rounded">
-                {selectedPlatform}
+                {appliedPlatform}
               </span>
             </div>
 
@@ -1953,7 +1997,7 @@ function WaterfallManagementPageContent() {
                 <MultipleSelect
                   value={newGroupSlots}
                   onChange={setNewGroupSlots}
-                  options={getSlotOptionsByScene(activeScene)}
+                  options={getSlotOptionsByScene(appliedScene)}
                   placeholder="请选择广告位"
                   triggerClassName="w-full"
                 />
@@ -2412,8 +2456,8 @@ function WaterfallManagementPageContent() {
                             setNewSourceName(dsp.value);
                             setDspSelectOpen(false);
                             // 从PID管理自动带入PID和SDK版本配置
-                            const sceneLabel = activeScene === 'splash' ? '开屏' : activeScene === 'interstitial' ? '插屏' : activeScene === 'search' ? '搜索' : '信息流';
-                            const platformLabel = selectedPlatform;
+                            const sceneLabel = appliedScene === 'splash' ? '开屏' : appliedScene === 'interstitial' ? '插屏' : appliedScene === 'search' ? '搜索' : '信息流';
+                            const platformLabel = appliedPlatform;
                             const matchedCode = codePositions.find(cp =>
                               cp.dspSource === (DSP_SOURCE_NAMES[dsp.value] || dsp.value) &&
                               cp.scene === sceneLabel &&
@@ -2443,13 +2487,13 @@ function WaterfallManagementPageContent() {
             {/* 广告场景 */}
             <div className="flex items-center">
               <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">广告场景</label>
-              <span className="text-sm text-[#1D2129]">{activeScene === 'splash' ? '开屏' : activeScene === 'interstitial' ? '插屏' : activeScene === 'search' ? '搜索' : '信息流'}</span>
+              <span className="text-sm text-[#1D2129]">{appliedScene === 'splash' ? '开屏' : appliedScene === 'interstitial' ? '插屏' : appliedScene === 'search' ? '搜索' : '信息流'}</span>
             </div>
 
             {/* 平台 - 从页面顶部配置带入，不可更改 */}
             <div className="flex items-center">
               <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0">平台</label>
-              <span className="text-sm text-[#1D2129]">{selectedPlatform}</span>
+              <span className="text-sm text-[#1D2129]">{appliedPlatform}</span>
             </div>
 
             {/* 广告位 - 根据分组广告位带入，不可编辑 */}
@@ -2458,7 +2502,7 @@ function WaterfallManagementPageContent() {
               <div className="flex-1">
                 <div className="flex flex-wrap gap-2">
                   {(() => {
-                    const sceneSlotIds = SCENE_SLOT_IDS[activeScene as AdScene] || [];
+                    const sceneSlotIds = SCENE_SLOT_IDS[appliedScene as AdScene] || [];
                     const filteredSlots = (currentGroup?.adSlots || []).filter(slotId => sceneSlotIds.includes(slotId));
                     return filteredSlots.length > 0 ? (
                       filteredSlots.map((slotId) => {
@@ -2942,7 +2986,7 @@ function WaterfallManagementPageContent() {
             <DialogTitle className="text-base font-semibold">分组管理</DialogTitle>
           </DialogHeader>
           <div className="text-xs text-[#86909C] mb-2">
-            当前场景：{SCENE_ITEMS.find(s => s.value === activeScene)?.label || activeScene} / 平台：{selectedPlatform === 'Android' ? '安卓' : 'iOS'}
+            当前场景：{SCENE_ITEMS.find(s => s.value === appliedScene)?.label || appliedScene} / 平台：{appliedPlatform === 'Android' ? '安卓' : 'iOS'}
             <span className="ml-3">拖拽调整分组优先级，数字越小优先级越高</span>
           </div>
           <GroupManageList
@@ -2973,7 +3017,7 @@ function WaterfallManagementPageContent() {
               const defaultGroups = filteredAdGroups.filter(g => g.priority >= 999);
               const allUpdated = [...updatedGroups, ...defaultGroups];
               setAdGroups(prev => {
-                const otherGroups = prev.filter(g => g.scene !== activeScene || g.platform !== selectedPlatform);
+                const otherGroups = prev.filter(g => g.scene !== appliedScene || g.platform !== appliedPlatform);
                 return [...otherGroups, ...allUpdated];
               });
             }}
