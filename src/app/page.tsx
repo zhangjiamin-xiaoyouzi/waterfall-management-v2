@@ -629,6 +629,7 @@ function WaterfallManagementPageContent() {
   const [reportMetric, setReportMetric] = useState<string>('incomePerThousand');
   const [reportScene, setReportScene] = useState<string>('all');
   const [reportPlatform, setReportPlatform] = useState<string>('all');
+  const [reportSlot, setReportSlot] = useState<string>('all');
 
   // 综合报表指标选项
   const REPORT_METRICS = [
@@ -2231,6 +2232,20 @@ function WaterfallManagementPageContent() {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#86909C] whitespace-nowrap">广告位</span>
+                  <Select value={reportSlot} onValueChange={(v) => { setReportSlot(v); setReportGroup('all'); }}>
+                    <SelectTrigger className="w-28 h-8 text-sm">
+                      <SelectValue placeholder="请选择" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部</SelectItem>
+                      {reportScene !== 'all' && SCENE_SLOT_IDS[reportScene as AdScene]?.map((slotId: string) => (
+                        <SelectItem key={slotId} value={slotId}>{SLOT_NAME_MAP[slotId] || slotId}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
                   <span className="text-sm text-[#86909C] whitespace-nowrap">分组</span>
                   <Select value={reportGroup} onValueChange={setReportGroup}>
                     <SelectTrigger className="w-32 h-8 text-sm">
@@ -2242,6 +2257,7 @@ function WaterfallManagementPageContent() {
                         .filter(g => {
                           if (reportScene !== 'all' && g.scene !== reportScene) return false;
                           if (reportPlatform !== 'all' && g.platform !== reportPlatform) return false;
+                          if (reportSlot !== 'all' && !g.adSlots.includes(reportSlot)) return false;
                           return true;
                         })
                         .map(g => (
