@@ -565,6 +565,12 @@ function WaterfallManagementPageContent() {
     disabledSources: []
   });
 
+  // A/B测试批量操作状态
+  const [abTestSelectedSources, setAbTestSelectedSources] = useState<Set<string>>(new Set());
+  const [showAbTestBatchDialog, setShowAbTestBatchDialog] = useState(false);
+  const [abTestBatchType, setAbTestBatchType] = useState<'enable' | 'disable' | 'setPrice'>('enable');
+  const [abTestBatchPrice, setAbTestBatchPrice] = useState('');
+
   // 代码位管理状态
   const [codePositions, setCodePositions] = useState<CodePosition[]>(MOCK_CODE_POSITIONS);
   const [showAddCodeDialog, setShowAddCodeDialog] = useState(false);
@@ -2608,11 +2614,23 @@ function WaterfallManagementPageContent() {
               <span className="text-sm text-[#86909C]">流量比例: {abTestConfig.flowRatio}%</span>
             </div>
 
-            {/* 添加PID按钮 */}
-            <Button className="bg-[#FF4D88] hover:bg-[#FF6A9E] text-white" onClick={() => { setAddSourceFromABTest(true); setShowAddSourceDialog(true); setSourceError(''); }}>
-              <Plus className="w-4 h-4 mr-1" />
-              添加PID
-            </Button>
+            {/* 添加PID按钮 & 批量操作 */}
+            <div className="flex items-center gap-2">
+              <Button className="bg-[#FF4D88] hover:bg-[#FF6A9E] text-white" onClick={() => { setAddSourceFromABTest(true); setShowAddSourceDialog(true); setSourceError(''); }}>
+                <Plus className="w-4 h-4 mr-1" />
+                添加PID
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className={abTestSelectedSources.size > 0 ? 'border-[#FF4D88] text-[#FF4D88] hover:bg-[#FF4D88]/10' : 'text-[#86909C]'}
+                disabled={abTestSelectedSources.size === 0}
+                onClick={() => { setAbTestBatchType('enable'); setAbTestBatchPrice(''); setShowAbTestBatchDialog(true); }}
+              >
+                <Zap className="w-4 h-4 mr-1" />
+                批量操作{abTestSelectedSources.size > 0 ? `(${abTestSelectedSources.size})` : ''}
+              </Button>
+            </div>
 
             {/* 已启用的DSP来源 */}
             <div>
@@ -2621,6 +2639,26 @@ function WaterfallManagementPageContent() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-[#F7F8FA]">
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={abTestConfig.enabledSources.length > 0 && abTestConfig.enabledSources.every(s => abTestSelectedSources.has(s.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setAbTestSelectedSources(prev => {
+                              const next = new Set(prev);
+                              abTestConfig.enabledSources.forEach(s => next.add(s.id));
+                              return next;
+                            });
+                          } else {
+                            setAbTestSelectedSources(prev => {
+                              const next = new Set(prev);
+                              abTestConfig.enabledSources.forEach(s => next.delete(s.id));
+                              return next;
+                            });
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead className="w-16">操作</TableHead>
                     <TableHead>DSP来源</TableHead>
                     <TableHead className="w-20">状态</TableHead>
@@ -2644,6 +2682,19 @@ function WaterfallManagementPageContent() {
                 <TableBody>
                   {abTestConfig.enabledSources.map((source, index) => (
                     <TableRow key={source.id}>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={abTestSelectedSources.has(source.id)}
+                          onCheckedChange={(checked) => {
+                            setAbTestSelectedSources(prev => {
+                              const next = new Set(prev);
+                              if (checked) next.add(source.id);
+                              else next.delete(source.id);
+                              return next;
+                            });
+                          }}
+                        />
+                      </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Button
                           size="sm"
@@ -2732,6 +2783,26 @@ function WaterfallManagementPageContent() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-[#F7F8FA]">
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={abTestConfig.disabledSources.length > 0 && abTestConfig.disabledSources.every(s => abTestSelectedSources.has(s.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setAbTestSelectedSources(prev => {
+                              const next = new Set(prev);
+                              abTestConfig.disabledSources.forEach(s => next.add(s.id));
+                              return next;
+                            });
+                          } else {
+                            setAbTestSelectedSources(prev => {
+                              const next = new Set(prev);
+                              abTestConfig.disabledSources.forEach(s => next.delete(s.id));
+                              return next;
+                            });
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead className="w-16">操作</TableHead>
                     <TableHead>DSP来源</TableHead>
                     <TableHead className="w-20">状态</TableHead>
@@ -2755,6 +2826,19 @@ function WaterfallManagementPageContent() {
                 <TableBody>
                   {abTestConfig.disabledSources.map((source) => (
                     <TableRow key={source.id}>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={abTestSelectedSources.has(source.id)}
+                          onCheckedChange={(checked) => {
+                            setAbTestSelectedSources(prev => {
+                              const next = new Set(prev);
+                              if (checked) next.add(source.id);
+                              else next.delete(source.id);
+                              return next;
+                            });
+                          }}
+                        />
+                      </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Button
                           size="sm"
@@ -3150,6 +3234,123 @@ function WaterfallManagementPageContent() {
                 }
                 setSelectedSources(new Set());
                 setShowBatchDialog(false);
+              }}
+            >
+              确认执行
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* A/B测试批量操作弹窗 */}
+      <Dialog open={showAbTestBatchDialog} onOpenChange={setShowAbTestBatchDialog}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold">批量操作</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="text-sm text-[#86909C]">
+              已选择 <span className="text-[#FF4D88] font-medium">{abTestSelectedSources.size}</span> 个DSP来源
+            </div>
+
+            {/* 操作类型选择 */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#1D2129]">操作类型</label>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-[#E5E6EB] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${abTestBatchType === 'enable' ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#86909C]'}`}
+                    onClick={() => setAbTestBatchType('enable')}
+                  >
+                    {abTestBatchType === 'enable' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="text-sm text-[#1D2129]">批量启用</span>
+                  <span className="text-xs text-[#86909C] ml-auto">将选中的DSP来源设置为启用状态</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-[#E5E6EB] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${abTestBatchType === 'disable' ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#86909C]'}`}
+                    onClick={() => setAbTestBatchType('disable')}
+                  >
+                    {abTestBatchType === 'disable' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="text-sm text-[#1D2129]">批量停用</span>
+                  <span className="text-xs text-[#86909C] ml-auto">将选中的DSP来源设置为停用状态</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-[#E5E6EB] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${abTestBatchType === 'setPrice' ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#86909C]'}`}
+                    onClick={() => setAbTestBatchType('setPrice')}
+                  >
+                    {abTestBatchType === 'setPrice' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="text-sm text-[#1D2129]">批量设置价格</span>
+                  <span className="text-xs text-[#86909C] ml-auto">将选中的DSP来源设置为指定价格</span>
+                </label>
+              </div>
+            </div>
+
+            {/* 价格输入 - 仅批量设置价格时显示 */}
+            {abTestBatchType === 'setPrice' && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-[#1D2129] shrink-0">价格</label>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#86909C]">¥</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={abTestBatchPrice}
+                    onChange={(e) => setAbTestBatchPrice(e.target.value)}
+                    placeholder="请输入价格"
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAbTestBatchDialog(false)}>
+              取消
+            </Button>
+            <Button
+              className="bg-[#FF4D88] hover:bg-[#FF6A9E] text-white"
+              onClick={() => {
+                if (abTestBatchType === 'enable') {
+                  setAbTestConfig(prev => ({
+                    ...prev,
+                    enabledSources: prev.enabledSources.map(s =>
+                      abTestSelectedSources.has(s.id) ? { ...s, status: 'enabled' as const } : s
+                    ),
+                    disabledSources: prev.disabledSources.map(s =>
+                      abTestSelectedSources.has(s.id) ? { ...s, status: 'enabled' as const } : s
+                    ),
+                  }));
+                } else if (abTestBatchType === 'disable') {
+                  setAbTestConfig(prev => ({
+                    ...prev,
+                    enabledSources: prev.enabledSources.map(s =>
+                      abTestSelectedSources.has(s.id) ? { ...s, status: 'disabled' as const } : s
+                    ),
+                    disabledSources: prev.disabledSources.map(s =>
+                      abTestSelectedSources.has(s.id) ? { ...s, status: 'disabled' as const } : s
+                    ),
+                  }));
+                } else if (abTestBatchType === 'setPrice') {
+                  const price = parseFloat(abTestBatchPrice);
+                  if (isNaN(price) || price < 0) return;
+                  setAbTestConfig(prev => ({
+                    ...prev,
+                    enabledSources: prev.enabledSources.map(s =>
+                      abTestSelectedSources.has(s.id) ? { ...s, price } : s
+                    ),
+                    disabledSources: prev.disabledSources.map(s =>
+                      abTestSelectedSources.has(s.id) ? { ...s, price } : s
+                    ),
+                  }));
+                }
+                setAbTestSelectedSources(new Set());
+                setShowAbTestBatchDialog(false);
               }}
             >
               确认执行
