@@ -2246,7 +2246,7 @@ function WaterfallManagementPageContent() {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-[#86909C] whitespace-nowrap">分组</span>
+                  <span className="text-sm text-[#86909C] whitespace-nowrap">流量分组</span>
                   <Select value={reportGroup} onValueChange={setReportGroup}>
                     <SelectTrigger className="w-32 h-8 text-sm">
                       <SelectValue />
