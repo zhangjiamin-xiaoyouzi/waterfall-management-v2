@@ -743,8 +743,22 @@ function WaterfallManagementPageContent() {
 
   // ==================== A/B测试报表状态 ====================
   const [abReportTab, setAbReportTab] = useState<'running' | 'ended'>('running');
+  const [abReportScene, setAbReportScene] = useState<string>('all');
+  const [abReportPlatform, setAbReportPlatform] = useState<string>('all');
+  const [abReportSlot, setAbReportSlot] = useState<string>('all');
   const [abReportGroup, setAbReportGroup] = useState<string>('all');
   const [abReportMetric, setAbReportMetric] = useState<string>('incomePerThousand');
+  // 根据场景+平台+广告位过滤出可选的流量分组
+  const abReportGroupOptions = useMemo(() => {
+    const filtered = adGroups.filter(g => {
+      if (abReportScene !== 'all' && pidSceneCnToEn[g.scene] !== abReportScene) return false;
+      if (abReportPlatform !== 'all' && g.platform !== abReportPlatform) return false;
+      if (abReportSlot !== 'all' && !g.adSlots.includes(abReportSlot)) return false;
+      return true;
+    });
+    const groups = [...new Set(filtered.map(g => g.name))];
+    return groups;
+  }, [adGroups, abReportScene, abReportPlatform, abReportSlot]);
   const [abReportDateRange, setAbReportDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     to: new Date(),
@@ -2359,21 +2373,70 @@ function WaterfallManagementPageContent() {
               </button>
             </div>
 
-            {/* 实验基础信息 */}
-            <div className="bg-white rounded-lg border border-[#E5E6EB] p-4 mb-6 flex items-center gap-6">
+            {/* 查询条件 */}
+            <div className="bg-white rounded-lg border border-[#E5E6EB] p-4 mb-4 flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-[#86909C]">流量分组</span>
-                <Select value={abReportGroup} onValueChange={setAbReportGroup}>
+                <span className="text-sm text-[#86909C] whitespace-nowrap">广告场景</span>
+                <Select value={abReportScene} onValueChange={(v) => { setAbReportScene(v); setAbReportSlot('all'); setAbReportGroup('all'); }}>
+                  <SelectTrigger className="w-28 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部</SelectItem>
+                    {SCENE_ITEMS.map(s => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[#86909C] whitespace-nowrap">平台</span>
+                <Select value={abReportPlatform} onValueChange={(v) => { setAbReportPlatform(v); setAbReportGroup('all'); }}>
+                  <SelectTrigger className="w-28 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部</SelectItem>
+                    <SelectItem value="Android">Android</SelectItem>
+                    <SelectItem value="iOS">iOS</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[#86909C] whitespace-nowrap">广告位</span>
+                <Select value={abReportSlot} onValueChange={(v) => { setAbReportSlot(v); setAbReportGroup('all'); }}>
+                  <SelectTrigger className="w-28 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部</SelectItem>
+                    {abReportScene !== 'all' && getSlotOptionsByScene(abReportScene).map(s => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[#86909C] whitespace-nowrap">流量分组</span>
+                <Select value={abReportGroup} onValueChange={setAbReportGroup} disabled={abReportScene === 'all' && abReportPlatform === 'all' && abReportSlot === 'all'}>
                   <SelectTrigger className="w-40 h-8 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="默认分组">默认分组</SelectItem>
-                    <SelectItem value="高价值用户组">高价值用户组</SelectItem>
-                    <SelectItem value="新用户组">新用户组</SelectItem>
+                    <SelectItem value="all">全部分组</SelectItem>
+                    {abReportGroupOptions.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+              <Button className="h-8 px-4 text-sm" style={{ backgroundColor: '#FF4D88', borderColor: '#FF4D88' }} onClick={() => {}}>
+                查询
+              </Button>
+            </div>
+
+            {/* 实验基础信息 */}
+            <div className="bg-white rounded-lg border border-[#E5E6EB] p-4 mb-6 flex items-center gap-6">
               <div className="flex-1">
                 <div className="text-sm text-[#1D2129] font-medium">测试名称：瀑布流广告位eCPM优化测试</div>
                 <div className="text-xs text-[#86909C] mt-1">生效时间：2026-01-22 11:24:43 ~ 2026-02-02 10:40:22</div>
