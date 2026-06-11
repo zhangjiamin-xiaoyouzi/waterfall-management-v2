@@ -209,87 +209,89 @@ interface CodePosition {
   slot: string;
   slotName: string;
   status: 'enabled' | 'disabled';
+  size?: string;
   minVersion?: string;
   maxVersion?: string;
+  size?: string;
 }
 
 // Mock代码位数据
 const MOCK_CODE_POSITIONS: CodePosition[] = [
   // ===== 开屏 × Android =====
-  { id: '1', codeId: '10001', name: '穿山甲-开屏', platform: 'Android', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '' },
-  { id: '5', codeId: '10005', name: '优量汇-开屏', platform: 'Android', dspSource: '腾讯广告', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '8', codeId: '10010', name: '快手-开屏', platform: 'Android', dspSource: '快手', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '9.02.0', maxVersion: '' },
-  { id: '9', codeId: '10018', name: 'Mintegral-开屏', platform: 'Android', dspSource: 'Mintegral', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '10', codeId: '10030', name: '巨量引擎-开屏', platform: 'Android', dspSource: '巨量引擎', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '11', codeId: '10031', name: 'Unity-开屏', platform: 'Android', dspSource: 'Unity Ads', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '12', codeId: '10032', name: 'AppLovin-开屏', platform: 'Android', dspSource: 'AppLovin', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '13', codeId: '10033', name: 'AdMob-开屏', platform: 'Android', dspSource: 'AdMob', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
+  { id: '1', codeId: '10001', name: '穿山甲-开屏', platform: 'Android', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '', size: 'all'},
+  { id: '5', codeId: '10005', name: '优量汇-开屏', platform: 'Android', dspSource: '腾讯广告', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '8', codeId: '10010', name: '快手-开屏', platform: 'Android', dspSource: '快手', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '9.02.0', maxVersion: '', size: 'all'},
+  { id: '9', codeId: '10018', name: 'Mintegral-开屏', platform: 'Android', dspSource: 'Mintegral', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '10', codeId: '10030', name: '巨量引擎-开屏', platform: 'Android', dspSource: '巨量引擎', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '11', codeId: '10031', name: 'Unity-开屏', platform: 'Android', dspSource: 'Unity Ads', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '12', codeId: '10032', name: 'AppLovin-开屏', platform: 'Android', dspSource: 'AppLovin', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '13', codeId: '10033', name: 'AdMob-开屏', platform: 'Android', dspSource: 'AdMob', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
   // ===== 开屏 × iOS =====
-  { id: '14', codeId: '10011', name: '穿山甲-开屏iOS', platform: 'iOS', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '' },
-  { id: '15', codeId: '10013', name: '快手-开屏iOS', platform: 'iOS', dspSource: '快手', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '16', codeId: '10034', name: '腾讯广告-开屏iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '17', codeId: '10035', name: 'Mintegral-开屏iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '18', codeId: '10036', name: '巨量引擎-开屏iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '19', codeId: '10037', name: 'Unity Ads-开屏iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '20', codeId: '10038', name: 'AppLovin-开屏iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
-  { id: '21', codeId: '10039', name: 'AdMob-开屏iOS', platform: 'iOS', dspSource: 'AdMob', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled' },
+  { id: '14', codeId: '10011', name: '穿山甲-开屏iOS', platform: 'iOS', dspSource: '穿山甲', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '', size: 'all'},
+  { id: '15', codeId: '10013', name: '快手-开屏iOS', platform: 'iOS', dspSource: '快手', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '16', codeId: '10034', name: '腾讯广告-开屏iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '17', codeId: '10035', name: 'Mintegral-开屏iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '18', codeId: '10036', name: '巨量引擎-开屏iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '19', codeId: '10037', name: 'Unity Ads-开屏iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '20', codeId: '10038', name: 'AppLovin-开屏iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
+  { id: '21', codeId: '10039', name: 'AdMob-开屏iOS', platform: 'iOS', dspSource: 'AdMob', scene: '开屏', slot: '1000', slotName: '美柚--开屏', status: 'disabled', size: 'all'},
   // ===== 插屏 × Android =====
-  { id: '3', codeId: '10007', name: '穿山甲-插屏', platform: 'Android', dspSource: '穿山甲', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '9.50.0' },
-  { id: '22', codeId: '10008', name: 'Mintegral-插屏', platform: 'Android', dspSource: 'Mintegral', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled' },
-  { id: '23', codeId: '10015', name: '快手-插屏分组1', platform: 'Android', dspSource: '快手', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '24', codeId: '10016', name: 'Mintegral-插屏分组1', platform: 'Android', dspSource: 'Mintegral', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled' },
-  { id: '25', codeId: '10017', name: 'Unity Ads-插屏分组1', platform: 'Android', dspSource: 'Unity Ads', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled' },
-  { id: '26', codeId: '10019', name: 'Mintegral-插屏分组2', platform: 'Android', dspSource: 'Mintegral', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled' },
-  { id: '27', codeId: '10020', name: '腾讯广告-插屏分组2', platform: 'Android', dspSource: '腾讯广告', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled' },
-  { id: '28', codeId: '10040', name: '巨量引擎-插屏', platform: 'Android', dspSource: '巨量引擎', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled' },
-  { id: '29', codeId: '10041', name: 'AppLovin-插屏', platform: 'Android', dspSource: 'AppLovin', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled' },
-  { id: '30', codeId: '10042', name: 'AdMob-插屏', platform: 'Android', dspSource: 'AdMob', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled' },
+  { id: '3', codeId: '10007', name: '穿山甲-插屏', platform: 'Android', dspSource: '穿山甲', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled', minVersion: '9.01.0', maxVersion: '9.50.0', size: 'all'},
+  { id: '22', codeId: '10008', name: 'Mintegral-插屏', platform: 'Android', dspSource: 'Mintegral', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', size: 'all'},
+  { id: '23', codeId: '10015', name: '快手-插屏分组1', platform: 'Android', dspSource: '快手', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '24', codeId: '10016', name: 'Mintegral-插屏分组1', platform: 'Android', dspSource: 'Mintegral', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', size: 'all'},
+  { id: '25', codeId: '10017', name: 'Unity Ads-插屏分组1', platform: 'Android', dspSource: 'Unity Ads', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', size: 'all'},
+  { id: '26', codeId: '10019', name: 'Mintegral-插屏分组2', platform: 'Android', dspSource: 'Mintegral', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled', size: 'all'},
+  { id: '27', codeId: '10020', name: '腾讯广告-插屏分组2', platform: 'Android', dspSource: '腾讯广告', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled', size: 'all'},
+  { id: '28', codeId: '10040', name: '巨量引擎-插屏', platform: 'Android', dspSource: '巨量引擎', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled', size: 'all'},
+  { id: '29', codeId: '10041', name: 'AppLovin-插屏', platform: 'Android', dspSource: 'AppLovin', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled', size: 'all'},
+  { id: '30', codeId: '10042', name: 'AdMob-插屏', platform: 'Android', dspSource: 'AdMob', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled', size: 'all'},
   // ===== 插屏 × iOS =====
-  { id: '2', codeId: '10002', name: '优量汇-插屏', platform: 'iOS', dspSource: '腾讯广告', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '31', codeId: '10021', name: 'Mintegral-插屏iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled' },
-  { id: '32', codeId: '10022', name: '腾讯广告-插屏iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled' },
-  { id: '33', codeId: '10043', name: '穿山甲-插屏iOS', platform: 'iOS', dspSource: '穿山甲', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled', minVersion: '9.01.0', maxVersion: '' },
-  { id: '34', codeId: '10044', name: '快手-插屏iOS', platform: 'iOS', dspSource: '快手', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '35', codeId: '10045', name: '巨量引擎-插屏iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled' },
-  { id: '36', codeId: '10046', name: 'Unity Ads-插屏iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled' },
-  { id: '37', codeId: '10047', name: 'AppLovin-插屏iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled' },
-  { id: '38', codeId: '10048', name: 'AdMob-插屏iOS', platform: 'iOS', dspSource: 'AdMob', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled' },
+  { id: '2', codeId: '10002', name: '优量汇-插屏', platform: 'iOS', dspSource: '腾讯广告', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '31', codeId: '10021', name: 'Mintegral-插屏iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'enabled', size: 'all'},
+  { id: '32', codeId: '10022', name: '腾讯广告-插屏iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'enabled', size: 'all'},
+  { id: '33', codeId: '10043', name: '穿山甲-插屏iOS', platform: 'iOS', dspSource: '穿山甲', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled', minVersion: '9.01.0', maxVersion: '', size: 'all'},
+  { id: '34', codeId: '10044', name: '快手-插屏iOS', platform: 'iOS', dspSource: '快手', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '35', codeId: '10045', name: '巨量引擎-插屏iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled', size: 'all'},
+  { id: '36', codeId: '10046', name: 'Unity Ads-插屏iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled', size: 'all'},
+  { id: '37', codeId: '10047', name: 'AppLovin-插屏iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '插屏', slot: '2101', slotName: '美柚-首页-插屏', status: 'disabled', size: 'all'},
+  { id: '38', codeId: '10048', name: 'AdMob-插屏iOS', platform: 'iOS', dspSource: 'AdMob', scene: '插屏', slot: '2514', slotName: '爱爱记录-记录完成插屏', status: 'disabled', size: 'all'},
   // ===== 信息流 × Android =====
-  { id: '7', codeId: '10024', name: '穿山甲-信息流', platform: 'Android', dspSource: '穿山甲', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'enabled', minVersion: '8.53.0', maxVersion: '' },
-  { id: '39', codeId: '10025', name: '快手-信息流', platform: 'Android', dspSource: '快手', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'enabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '40', codeId: '10049', name: '腾讯广告-信息流', platform: 'Android', dspSource: '腾讯广告', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled' },
-  { id: '41', codeId: '10050', name: 'Mintegral-信息流', platform: 'Android', dspSource: 'Mintegral', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled' },
-  { id: '42', codeId: '10051', name: '巨量引擎-信息流', platform: 'Android', dspSource: '巨量引擎', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled' },
-  { id: '43', codeId: '10052', name: 'Unity Ads-信息流', platform: 'Android', dspSource: 'Unity Ads', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled' },
-  { id: '44', codeId: '10053', name: 'AppLovin-信息流', platform: 'Android', dspSource: 'AppLovin', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled' },
-  { id: '45', codeId: '10054', name: 'AdMob-信息流', platform: 'Android', dspSource: 'AdMob', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled' },
+  { id: '7', codeId: '10024', name: '穿山甲-信息流', platform: 'Android', dspSource: '穿山甲', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'enabled', minVersion: '8.53.0', maxVersion: '', size: 'all'},
+  { id: '39', codeId: '10025', name: '快手-信息流', platform: 'Android', dspSource: '快手', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'enabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '40', codeId: '10049', name: '腾讯广告-信息流', platform: 'Android', dspSource: '腾讯广告', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled', size: 'all'},
+  { id: '41', codeId: '10050', name: 'Mintegral-信息流', platform: 'Android', dspSource: 'Mintegral', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled', size: 'all'},
+  { id: '42', codeId: '10051', name: '巨量引擎-信息流', platform: 'Android', dspSource: '巨量引擎', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled', size: 'all'},
+  { id: '43', codeId: '10052', name: 'Unity Ads-信息流', platform: 'Android', dspSource: 'Unity Ads', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled', size: 'all'},
+  { id: '44', codeId: '10053', name: 'AppLovin-信息流', platform: 'Android', dspSource: 'AppLovin', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled', size: 'all'},
+  { id: '45', codeId: '10054', name: 'AdMob-信息流', platform: 'Android', dspSource: 'AdMob', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled', size: 'all'},
   // ===== 信息流 × iOS =====
-  { id: '4', codeId: '10027', name: '广点通-信息流iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'enabled' },
-  { id: '6', codeId: '10006', name: '穿山甲-信息流帖子详情', platform: 'iOS', dspSource: '穿山甲', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'enabled', minVersion: '9.02.0', maxVersion: '' },
-  { id: '46', codeId: '10055', name: '快手-信息流iOS', platform: 'iOS', dspSource: '快手', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '47', codeId: '10056', name: 'Mintegral-信息流iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled' },
-  { id: '48', codeId: '10057', name: '巨量引擎-信息流iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled' },
-  { id: '49', codeId: '10058', name: 'Unity Ads-信息流iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled' },
-  { id: '50', codeId: '10059', name: 'AppLovin-信息流iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled' },
-  { id: '51', codeId: '10060', name: 'AdMob-信息流iOS', platform: 'iOS', dspSource: 'AdMob', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled' },
+  { id: '4', codeId: '10027', name: '广点通-信息流iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'enabled', size: 'all'},
+  { id: '6', codeId: '10006', name: '穿山甲-信息流帖子详情', platform: 'iOS', dspSource: '穿山甲', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'enabled', minVersion: '9.02.0', maxVersion: '', size: 'all'},
+  { id: '46', codeId: '10055', name: '快手-信息流iOS', platform: 'iOS', dspSource: '快手', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '47', codeId: '10056', name: 'Mintegral-信息流iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled', size: 'all'},
+  { id: '48', codeId: '10057', name: '巨量引擎-信息流iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled', size: 'all'},
+  { id: '49', codeId: '10058', name: 'Unity Ads-信息流iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '信息流', slot: '1120', slotName: '首页大社区feeds流', status: 'disabled', size: 'all'},
+  { id: '50', codeId: '10059', name: 'AppLovin-信息流iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '信息流', slot: '1601', slotName: '美柚-她她圈-帖子详情楼间广告', status: 'disabled', size: 'all'},
+  { id: '51', codeId: '10060', name: 'AdMob-信息流iOS', platform: 'iOS', dspSource: 'AdMob', scene: '信息流', slot: '1602', slotName: '美柚-她她圈-帖子详情信息流', status: 'disabled', size: 'all'},
   // ===== 搜索 × Android =====
-  { id: '52', codeId: '20001', name: '穿山甲-搜索', platform: 'Android', dspSource: '穿山甲', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '9.01.0', maxVersion: '' },
-  { id: '53', codeId: '20002', name: '腾讯广告-搜索', platform: 'Android', dspSource: '腾讯广告', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '54', codeId: '20003', name: '快手-搜索', platform: 'Android', dspSource: '快手', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '55', codeId: '20004', name: 'Mintegral-搜索', platform: 'Android', dspSource: 'Mintegral', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '56', codeId: '20005', name: '巨量引擎-搜索', platform: 'Android', dspSource: '巨量引擎', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '57', codeId: '20006', name: 'Unity Ads-搜索', platform: 'Android', dspSource: 'Unity Ads', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '58', codeId: '20007', name: 'AppLovin-搜索', platform: 'Android', dspSource: 'AppLovin', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '59', codeId: '20008', name: 'AdMob-搜索', platform: 'Android', dspSource: 'AdMob', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
+  { id: '52', codeId: '20001', name: '穿山甲-搜索', platform: 'Android', dspSource: '穿山甲', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '9.01.0', maxVersion: '', size: 'all'},
+  { id: '53', codeId: '20002', name: '腾讯广告-搜索', platform: 'Android', dspSource: '腾讯广告', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '54', codeId: '20003', name: '快手-搜索', platform: 'Android', dspSource: '快手', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '55', codeId: '20004', name: 'Mintegral-搜索', platform: 'Android', dspSource: 'Mintegral', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '56', codeId: '20005', name: '巨量引擎-搜索', platform: 'Android', dspSource: '巨量引擎', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '57', codeId: '20006', name: 'Unity Ads-搜索', platform: 'Android', dspSource: 'Unity Ads', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '58', codeId: '20007', name: 'AppLovin-搜索', platform: 'Android', dspSource: 'AppLovin', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '59', codeId: '20008', name: 'AdMob-搜索', platform: 'Android', dspSource: 'AdMob', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
   // ===== 搜索 × iOS =====
-  { id: '60', codeId: '20011', name: '穿山甲-搜索iOS', platform: 'iOS', dspSource: '穿山甲', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '9.01.0', maxVersion: '' },
-  { id: '61', codeId: '20012', name: '腾讯广告-搜索iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '62', codeId: '20013', name: '快手-搜索iOS', platform: 'iOS', dspSource: '快手', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '8.52.0', maxVersion: '' },
-  { id: '63', codeId: '20014', name: 'Mintegral-搜索iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '64', codeId: '20015', name: '巨量引擎-搜索iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '65', codeId: '20016', name: 'Unity Ads-搜索iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '66', codeId: '20017', name: 'AppLovin-搜索iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
-  { id: '67', codeId: '20018', name: 'AdMob-搜索iOS', platform: 'iOS', dspSource: 'AdMob', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled' },
+  { id: '60', codeId: '20011', name: '穿山甲-搜索iOS', platform: 'iOS', dspSource: '穿山甲', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '9.01.0', maxVersion: '', size: 'all'},
+  { id: '61', codeId: '20012', name: '腾讯广告-搜索iOS', platform: 'iOS', dspSource: '腾讯广告', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '62', codeId: '20013', name: '快手-搜索iOS', platform: 'iOS', dspSource: '快手', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', minVersion: '8.52.0', maxVersion: '', size: 'all'},
+  { id: '63', codeId: '20014', name: 'Mintegral-搜索iOS', platform: 'iOS', dspSource: 'Mintegral', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '64', codeId: '20015', name: '巨量引擎-搜索iOS', platform: 'iOS', dspSource: '巨量引擎', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '65', codeId: '20016', name: 'Unity Ads-搜索iOS', platform: 'iOS', dspSource: 'Unity Ads', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '66', codeId: '20017', name: 'AppLovin-搜索iOS', platform: 'iOS', dspSource: 'AppLovin', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
+  { id: '67', codeId: '20018', name: 'AdMob-搜索iOS', platform: 'iOS', dspSource: 'AdMob', scene: '搜索', slot: '4001', slotName: '美柚-搜索广告', status: 'disabled', size: 'all'},
 ];
 
 // 广告场景
@@ -315,7 +317,7 @@ const SLOT_NAME_MAP: Record<string, string> = {
 const SCENE_SLOT_IDS: Record<AdScene, string[]> = {
   splash: ['1000'],
   interstitial: ['2101', '2514'],
-  feed: ['1120', '1601', '1602'],
+  feed: ['1120', '1601', '1602', '4001'],
   search: ['4001'],
 };
 
@@ -331,6 +333,7 @@ const getSlotOptionsByScene = (scene: string) => {
     options.push({ value: '1120', label: '1120 - 首页大社区feeds流' });
     options.push({ value: '1601', label: '1601 - 美柚-她她圈-帖子详情楼间广告' });
     options.push({ value: '1602', label: '1602 - 美柚-她她圈-帖子详情信息流' });
+    options.push({ value: '4001', label: '4001 - 美柚-搜索广告' });
   } else if (scene === 'search') {
     options.push({ value: '4001', label: '4001 - 美柚-搜索广告' });
   }
@@ -454,6 +457,8 @@ function WaterfallManagementPageContent() {
   const [newGroupPriority, setNewGroupPriority] = useState(0);
   const [newGroupSlots, setNewGroupSlots] = useState<string[]>([]);
   const [newGroupRules, setNewGroupRules] = useState<GroupRule[]>([]);
+  // 复制分组时携带的 PID 列表（仅用于临时填充，新建/取消时清空）
+  const [newGroupAdSources, setNewGroupAdSources] = useState<AdSource[]>([]);
 
   // 计算非默认分组的最大优先级，用于新建分组时自动分配
   const maxNonDefaultPriority = useMemo(() =>
@@ -489,6 +494,8 @@ function WaterfallManagementPageContent() {
   const [sourceError, setSourceError] = useState('');
   const [newSourceMinVersion, setNewSourceMinVersion] = useState('');
   const [newSourceMaxVersion, setNewSourceMaxVersion] = useState('');
+  const [newSourceSize, setNewSourceSize] = useState('all');
+  const [newSourceSizeCustom, setNewSourceSizeCustom] = useState('');
   const [dspSelectOpen, setDspSelectOpen] = useState(false);
   
   // 编辑DSP来源
@@ -519,6 +526,13 @@ function WaterfallManagementPageContent() {
     setNewSourceSubPositions(source.subPositions || []);
     setNewSourceMinVersion(source.minVersion || '');
     setNewSourceMaxVersion(source.maxVersion || '');
+    if (source.size && source.size !== 'all') {
+      setNewSourceSize('custom');
+      setNewSourceSizeCustom(source.size);
+    } else {
+      setNewSourceSize('all');
+      setNewSourceSizeCustom('');
+    }
     setShowAddSourceDialog(true);
     setSourceError('');
   };
@@ -533,6 +547,8 @@ function WaterfallManagementPageContent() {
     setNewSourceSubPositions([]);
     setNewSourceMinVersion('');
     setNewSourceMaxVersion('');
+    setNewSourceSize('all');
+    setNewSourceSizeCustom('');
     setSourceError('');
     setEditingSource(null);
   };
@@ -591,6 +607,8 @@ function WaterfallManagementPageContent() {
     minVersion: '',
     maxVersion: '',
     enabled: true,
+    size: 'all',
+    sizeCustom: '',
   });
   const [codeDspSelectOpen, setCodeDspSelectOpen] = useState(false);
 
@@ -641,6 +659,7 @@ function WaterfallManagementPageContent() {
     { value: 'ecpm', label: 'eCPM' },
     { value: 'requestValuePerThousand', label: '千次请求价值' },
     { value: 'requestCount', label: '请求量' },
+    { value: 'returnCount', label: '返回量' },
     { value: 'returnRate', label: '返回率' },
     { value: 'bidSuccessCount', label: '竞价成功数' },
     { value: 'bidSuccessRate', label: '竞价成功率' },
@@ -666,7 +685,7 @@ function WaterfallManagementPageContent() {
   const reportTotals = useMemo(() => {
     if (reportData.length === 0) return null;
     const total: Record<string, number> = {};
-    const sumFields = ['estimatedIncome', 'requestCount', 'bidSuccessCount', 'impressionCount', 'clickCount'];
+    const sumFields = ['estimatedIncome', 'requestCount', 'returnCount', 'bidSuccessCount', 'impressionCount', 'clickCount'];
     const avgFields = ['incomePerThousand', 'ecpm', 'requestValuePerThousand', 'returnRate', 'bidSuccessRate', 'winShowRate', 'clickRate', 'cpc'];
 
     reportData.forEach(row => {
@@ -683,7 +702,7 @@ function WaterfallManagementPageContent() {
     if (metric === 'returnRate' || metric === 'bidSuccessRate' || metric === 'winShowRate' || metric === 'clickRate') {
       return `${value.toFixed(2)}%`;
     }
-    if (metric === 'requestCount' || metric === 'bidSuccessCount' || metric === 'impressionCount' || metric === 'clickCount') {
+    if (metric === 'requestCount' || metric === 'returnCount' || metric === 'bidSuccessCount' || metric === 'impressionCount' || metric === 'clickCount') {
       return Math.floor(value).toLocaleString();
     }
     if (metric === 'estimatedIncome') {
@@ -855,8 +874,10 @@ function WaterfallManagementPageContent() {
       '1120': '首页大社区feeds流',
       '1601': '美柚-她她圈-帖子详情楼间广告',
       '1602': '美柚-她她圈-帖子详情信息流',
+      '4001': '搜索',
     };
     const dspName = DSP_SOURCE_NAMES[newCodeForm.dspSource] || newCodeForm.dspSource;
+    const size = newCodeForm.size === 'custom' ? newCodeForm.sizeCustom : newCodeForm.size;
 
     if (editingCodePosition) {
       // 编辑模式
@@ -873,6 +894,7 @@ function WaterfallManagementPageContent() {
                 slot: newCodeForm.slot,
                 slotName: slotMap[newCodeForm.slot] || newCodeForm.slot,
                 status: newCodeForm.enabled ? 'enabled' : 'disabled',
+                size,
               }
             : cp
         )
@@ -889,11 +911,12 @@ function WaterfallManagementPageContent() {
         slot: newCodeForm.slot,
         slotName: slotMap[newCodeForm.slot] || newCodeForm.slot,
         status: newCodeForm.enabled ? 'enabled' : 'disabled',
+        size,
       };
       setCodePositions((prev) => [...prev, newCode]);
     }
 
-    setNewCodeForm({ platform: '', dspSource: '', scene: '', slot: '', codeId: '', minVersion: '', maxVersion: '', enabled: true });
+    setNewCodeForm({ platform: '', dspSource: '', scene: '', slot: '', codeId: '', minVersion: '', maxVersion: '', enabled: true, size: 'all', sizeCustom: '' });
     setEditingCodePosition(null);
     setShowAddCodeDialog(false);
   }, [newCodeForm, editingCodePosition]);
@@ -916,10 +939,10 @@ function WaterfallManagementPageContent() {
       const hasNonDefaultVisible = filteredAdGroups.some((g) => g.priority < 999);
 
       if (!existsInData || !existsInView || (isDefaultSelected && hasNonDefaultVisible)) {
-        // 优先从当前场景可见的分组中选第一个非默认分组
+        // 优先从当前场景可见的分组中选 priority 最大（最高优先级）的非默认分组
         const firstVisible = filteredAdGroups
           .filter((g) => g.priority < 999)
-          .sort((a, b) => a.priority - b.priority)[0];
+          .sort((a, b) => b.priority - a.priority)[0];
         if (firstVisible) {
           setSelectedGroupId(firstVisible.id);
           return;
@@ -927,7 +950,7 @@ function WaterfallManagementPageContent() {
         // 退而求其次，从全部分组中选第一个非默认分组
         const firstFromAll = adGroups
           .filter((g) => g.priority < 999)
-          .sort((a, b) => a.priority - b.priority)[0];
+          .sort((a, b) => b.priority - a.priority)[0];
         if (firstFromAll) {
           setSelectedGroupId(firstFromAll.id);
         }
@@ -942,7 +965,7 @@ function WaterfallManagementPageContent() {
       if (!stillExists) {
         const firstGroup = filteredAdGroups
           .filter((g) => g.priority < 999)
-          .sort((a, b) => a.priority - b.priority)[0];
+          .sort((a, b) => b.priority - a.priority)[0];
         setSelectedGroupId(firstGroup?.id || filteredAdGroups[0]?.id || '');
       }
     }
@@ -950,7 +973,7 @@ function WaterfallManagementPageContent() {
 
   // 获取当前选中的分组（从筛选后的分组中选），优先选非默认分组
   const currentGroup = filteredAdGroups.find((g) => g.id === selectedGroupId) 
-    || filteredAdGroups.filter(g => g.priority < 999).sort((a, b) => a.priority - b.priority)[0] 
+    || filteredAdGroups.filter(g => g.priority < 999).sort((a, b) => b.priority - a.priority)[0] 
     || filteredAdGroups[0] 
     || adGroups[0];
   const enabledSources = currentGroup?.adSources.filter((s) => s.status === 'enabled') || [];
@@ -1145,7 +1168,7 @@ function WaterfallManagementPageContent() {
         rules: newGroupRules,
         status: 'enabled',
         floorPrice: 0,
-        adSources: [],
+        adSources: newGroupAdSources.length > 0 ? newGroupAdSources : [],
       };
       try {
         const res = await fetch('/api/groups', {
@@ -1168,16 +1191,19 @@ function WaterfallManagementPageContent() {
     setNewGroupPriority(0);
     setNewGroupSlots([]);
     setNewGroupRules([]);
+    setNewGroupAdSources([]);
     setShowAddGroupDialog(false);
-  }, [newGroupName, newGroupPriority, newGroupSlots, newGroupRules, editingGroup, appliedScene, appliedPlatform]);
+  }, [newGroupName, newGroupPriority, newGroupSlots, newGroupRules, newGroupAdSources, editingGroup, appliedScene, appliedPlatform]);
 
-  // 复制分组 - 打开添加弹窗并填充配置
+  // 复制分组 - 打开添加弹窗并填充配置（含分组下PID）
   const handleCopyGroup = useCallback((group: AdGroup) => {
     const maxPriority = Math.max(...adGroups.filter(g => g.priority < 999).map(g => g.priority), 0);
     setNewGroupName(`${group.name} - 副本`);
     setNewGroupPriority(maxPriority + 1);
     setNewGroupSlots([...group.adSlots]);
     setNewGroupRules(JSON.parse(JSON.stringify(group.rules)));
+    // 深拷贝分组下所有 PID（adSources）
+    setNewGroupAdSources(group.adSources.map(s => ({ ...s, id: `${s.id}-copy-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` })));
     setEditingGroup(null);
     setShowAddGroupDialog(true);
   }, [adGroups]);
@@ -1193,13 +1219,7 @@ function WaterfallManagementPageContent() {
       setSourceError('该DSP来源在PID管理中无对应PID，请先在PID管理中添加');
       return;
     }
-    // SDK类型DSP来源时，版本配置必填
-    if (SDK_SOURCE_VALUES.has(newSourceName)) {
-      if (!newSourceMinVersion.trim() && !newSourceMaxVersion.trim()) {
-        setSourceError('该DSP来源在PID管理中无版本配置，请先在PID管理中配置');
-        return;
-      }
-    }
+    // 美柚 APP 版本配置 - 非必填，无需校验
     setSourceError('');
     
     if (editingSource) {
@@ -1210,6 +1230,7 @@ function WaterfallManagementPageContent() {
         platforms: newSourcePlatform as ('Android' | 'iOS')[],
         codeId: newSourceCodeId,
         subPositions: newSourceSubPositions,
+        size: newSourceSize === 'custom' ? (newSourceSizeCustom || 'all') : 'all',
         minVersion: newSourceMinVersion || undefined,
         maxVersion: newSourceMaxVersion || undefined,
         lastUpdated: new Date().toLocaleString('zh-CN'),
@@ -1252,6 +1273,7 @@ function WaterfallManagementPageContent() {
         codeId: newSourceCodeId,
         subPositions: newSourceSubPositions,
         dspSources: [newSourceName],
+        size: newSourceSize === 'custom' ? (newSourceSizeCustom || 'all') : 'all',
         minVersion: newSourceMinVersion || undefined,
         maxVersion: newSourceMaxVersion || undefined,
       };
@@ -1418,32 +1440,19 @@ function WaterfallManagementPageContent() {
         {currentPage === 'waterfall' && (
         <div className="bg-white border-b border-[#E5E6EB] px-6 py-3">
           <div className="flex items-center gap-4">
-            {/* 广告场景 - 可搜索 */}
+            {/* 广告场景 */}
             <div className="flex items-center gap-3">
               <span className="text-sm text-[#86909C]">广告场景：</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-28 h-8 justify-between text-sm font-normal border-[#E5E6EB] px-3" role="combobox">
-                    <span>{SCENE_ITEMS.find(s => s.value === activeScene)?.label || activeScene}</span>
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-28 p-0" align="start">
-                  <Command>
-                    <CommandList>
-                      {SCENE_ITEMS.map((scene) => (
-                        <CommandItem
-                          key={scene.value}
-                          value={scene.label}
-                          onSelect={() => { setActiveScene(scene.value as AdScene); setSelectedSlot(''); setSelectedSubPositions([]); }}
-                        >
-                          {scene.label}
-                        </CommandItem>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Select value={activeScene} onValueChange={(v) => { setActiveScene(v as AdScene); setSelectedSlot(''); setSelectedSubPositions([]); }}>
+                <SelectTrigger className="w-28 h-8 border-[#E5E6EB]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SCENE_ITEMS.map((scene) => (
+                    <SelectItem key={scene.value} value={scene.value}>{scene.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {/* 平台筛选 */}
             <div className="flex items-center gap-3">
@@ -1517,8 +1526,8 @@ function WaterfallManagementPageContent() {
                   // 默认分组固定在最右
                   if (a.priority >= 999) return 1;
                   if (b.priority >= 999) return -1;
-                  // 其他按优先级升序排列（数值越小优先级越高）
-                  return a.priority - b.priority;
+                  // 其他按优先级降序排列（数值越大优先级越高，越靠左）
+                  return b.priority - a.priority;
                 })
                 .map((group) => (
                   <div
@@ -2418,6 +2427,7 @@ function WaterfallManagementPageContent() {
                     <TableHead className="text-[#86909C] font-medium text-right">eCPM</TableHead>
                     <TableHead className="text-[#86909C] font-medium text-right">千次请求价值</TableHead>
                     <TableHead className="text-[#86909C] font-medium text-right">请求量</TableHead>
+                    <TableHead className="text-[#86909C] font-medium text-right">返回量</TableHead>
                     <TableHead className="text-[#86909C] font-medium text-right">返回率</TableHead>
                     <TableHead className="text-[#86909C] font-medium text-right">竞价成功数</TableHead>
                     <TableHead className="text-[#86909C] font-medium text-right">竞价成功率</TableHead>
@@ -2583,6 +2593,7 @@ function WaterfallManagementPageContent() {
           setEditingGroup(null);
           setNewGroupName('');
           setNewGroupRules([]);
+          setNewGroupAdSources([]);
         }
       }}>
         <DialogContent className="sm:max-w-[700px]">
@@ -3028,10 +3039,10 @@ function WaterfallManagementPageContent() {
               />
             </div>
 
-            {/* SDK版本配置 - 仅在选择SDK类型DSP来源时显示 */}
+            {/* 美柚 APP 版本配置 - 仅在选择SDK类型DSP来源时显示（非必填） */}
             {SDK_SOURCE_VALUES.has(newCodeForm.dspSource) && (
               <div className="border border-[#E5E6EB] rounded-lg p-4 space-y-3">
-                <div className="text-xs text-[#86909C] font-medium">SDK版本配置 <span className="text-[#FF4D88]">*</span></div>
+                <div className="text-xs text-[#86909C] font-medium">美柚 APP 版本配置</div>
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <label className="text-xs text-[#4E5969] mb-1 block">最小版本</label>
@@ -3052,6 +3063,32 @@ function WaterfallManagementPageContent() {
                 </div>
               </div>
             )}
+
+            {/* 尺寸 */}
+            <div className="flex items-start">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0 pt-2">尺寸</label>
+              <div className="flex-1 space-y-2">
+                <RadioGroup value={newCodeForm.size} onValueChange={(v) => setNewCodeForm({ ...newCodeForm, size: v })} className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="all" id="code-size-all" />
+                    <label htmlFor="code-size-all" className="text-sm cursor-pointer">全尺寸</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="custom" id="code-size-custom" />
+                    <label htmlFor="code-size-custom" className="text-sm cursor-pointer">自定义</label>
+                  </div>
+                </RadioGroup>
+                {newCodeForm.size === 'custom' && (
+                  <Input
+                    type="text"
+                    value={newCodeForm.sizeCustom}
+                    onChange={(e) => setNewCodeForm({ ...newCodeForm, sizeCustom: e.target.value })}
+                    placeholder="如 1080*1555"
+                    className="w-48 h-8 text-sm"
+                  />
+                )}
+              </div>
+            </div>
 
             {/* 状态 */}
             <div className="flex items-center">
@@ -3115,10 +3152,14 @@ function WaterfallManagementPageContent() {
                               setNewSourceCodeId(matchedCode.codeId);
                               setNewSourceMinVersion(matchedCode.minVersion || '');
                               setNewSourceMaxVersion(matchedCode.maxVersion || '');
+                              setNewSourceSize(matchedCode.size || 'all');
+                              setNewSourceSizeCustom(matchedCode.size && matchedCode.size !== 'all' ? matchedCode.size : '');
                             } else {
                               setNewSourceCodeId('');
                               setNewSourceMinVersion('');
                               setNewSourceMaxVersion('');
+                              setNewSourceSize('all');
+                              setNewSourceSizeCustom('');
                             }
                           }}
                         >
@@ -3182,10 +3223,10 @@ function WaterfallManagementPageContent() {
               )}
             </div>
 
-            {/* SDK版本配置 - 从PID管理自动带入 */}
+            {/* 美柚 APP 版本配置 - 从PID管理自动带入 */}
             {SDK_SOURCE_VALUES.has(newSourceName) && (
               <div className="border border-[#E5E6EB] rounded-lg p-4 space-y-3">
-                <div className="text-xs text-[#86909C] font-medium">SDK版本配置 <span className="text-[#FF4D88]">*</span></div>
+                <div className="text-xs text-[#86909C] font-medium">美柚 APP 版本配置</div>
                 {(newSourceMinVersion || newSourceMaxVersion) ? (
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
@@ -3203,6 +3244,32 @@ function WaterfallManagementPageContent() {
                 )}
               </div>
             )}
+
+            {/* 尺寸 */}
+            <div className="flex items-start">
+              <label className="w-24 text-sm font-medium text-[#1D2129] shrink-0 pt-2">尺寸</label>
+              <div className="flex-1 space-y-2">
+                <RadioGroup value={newSourceSize} onValueChange={setNewSourceSize} className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="all" id="pid-size-all" />
+                    <label htmlFor="pid-size-all" className="text-sm cursor-pointer">全尺寸</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="custom" id="pid-size-custom" />
+                    <label htmlFor="pid-size-custom" className="text-sm cursor-pointer">自定义</label>
+                  </div>
+                </RadioGroup>
+                {newSourceSize === 'custom' && (
+                  <Input
+                    type="text"
+                    value={newSourceSizeCustom}
+                    onChange={(e) => setNewSourceSizeCustom(e.target.value)}
+                    placeholder="如 1080*1555"
+                    className="w-48 h-8 text-sm"
+                  />
+                )}
+              </div>
+            </div>
 
             {/* 状态 */}
             <div className="flex items-center">
@@ -3311,6 +3378,7 @@ function WaterfallManagementPageContent() {
                     <TableHead className="w-20">eCPM</TableHead>
                     <TableHead className="w-24">千次请求价值</TableHead>
                     <TableHead className="w-20">请求量</TableHead>
+                    <TableHead className="w-20">返回量</TableHead>
                     <TableHead className="w-20">返回率</TableHead>
                     <TableHead className="w-20">竞价成功数</TableHead>
                     <TableHead className="w-24">竞价成功率</TableHead>
@@ -3386,6 +3454,7 @@ function WaterfallManagementPageContent() {
                       <TableCell className="text-xs text-right">¥{(source.ecpm || 0).toFixed(2)}</TableCell>
                       <TableCell className="text-xs text-right">¥{(source.thousandRequestValue || 0).toFixed(2)}</TableCell>
                       <TableCell className="text-xs text-right">{(source.requests || 0) >= 10000 ? `${(source.requests / 10000).toFixed(1)}万` : source.requests || 0}</TableCell>
+                      <TableCell className="text-xs text-right">{(source.responseCount ?? 0) >= 10000 ? `${((source.responseCount ?? 0) / 10000).toFixed(1)}万` : (source.responseCount ?? 0)}</TableCell>
                       <TableCell className="text-xs text-right">{(source.responseRate || 0).toFixed(1)}%</TableCell>
                       <TableCell className="text-xs text-right">{(source.bidWins || 0) >= 10000 ? `${(source.bidWins / 10000).toFixed(1)}万` : source.bidWins || 0}</TableCell>
                       <TableCell className="text-xs text-right">{(source.bidWinRate || 0).toFixed(1)}%</TableCell>
@@ -3397,7 +3466,7 @@ function WaterfallManagementPageContent() {
                   ))}
                   {abTestConfig.enabledSources.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={18} className="text-center text-[#86909C] py-4 text-xs">
+                      <TableCell colSpan={19} className="text-center text-[#86909C] py-4 text-xs">
                         暂无已启用DSP来源，请点击上方「添加PID」按钮添加
                       </TableCell></TableRow>
                   )}
@@ -3455,6 +3524,7 @@ function WaterfallManagementPageContent() {
                     <TableHead className="w-20">eCPM</TableHead>
                     <TableHead className="w-24">千次请求价值</TableHead>
                     <TableHead className="w-20">请求量</TableHead>
+                    <TableHead className="w-20">返回量</TableHead>
                     <TableHead className="w-20">返回率</TableHead>
                     <TableHead className="w-20">竞价成功数</TableHead>
                     <TableHead className="w-24">竞价成功率</TableHead>
@@ -3546,11 +3616,12 @@ function WaterfallManagementPageContent() {
                       <TableCell className="text-xs text-right text-[#C9CDD4]">-</TableCell>
                       <TableCell className="text-xs text-right text-[#C9CDD4]">-</TableCell>
                       <TableCell className="text-xs text-right text-[#C9CDD4]">-</TableCell>
+                      <TableCell className="text-xs text-right text-[#C9CDD4]">-</TableCell>
                       <TableCell className="text-xs text-right text-[#C9CDD4]">-</TableCell></TableRow>
                   ))}
                   {abTestConfig.disabledSources.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={18} className="text-center text-[#86909C] py-4 text-xs">
+                      <TableCell colSpan={19} className="text-center text-[#86909C] py-4 text-xs">
                         暂无未启用DSP来源
                       </TableCell></TableRow>
                   )}
@@ -3612,6 +3683,7 @@ function WaterfallManagementPageContent() {
                   <TableHead className="text-right">eCPM</TableHead>
                   <TableHead className="text-right">千次请求价值</TableHead>
                   <TableHead className="text-right">请求量</TableHead>
+                  <TableHead className="text-right">返回量</TableHead>
                   <TableHead className="text-right">返回率</TableHead>
                   <TableHead className="text-right">竞价成功数</TableHead>
                   <TableHead className="text-right">竞价成功率</TableHead>
@@ -3632,6 +3704,8 @@ function WaterfallManagementPageContent() {
                   <TableCell className="text-right">23.17</TableCell>
                   <TableCell className="text-right">18.52</TableCell>
                   <TableCell className="text-right">54,720</TableCell>
+                  <TableCell className="text-right">52,962</TableCell>
+                  <TableCell className="text-right">44,210</TableCell>
                   <TableCell className="text-right">96.78%</TableCell>
                   <TableCell className="text-right">26,462</TableCell>
                   <TableCell className="text-right">48.36%</TableCell>
@@ -3649,6 +3723,8 @@ function WaterfallManagementPageContent() {
                   <TableCell className="text-right">11.35</TableCell>
                   <TableCell className="text-right">8.21</TableCell>
                   <TableCell className="text-right">4,580</TableCell>
+                  <TableCell className="text-right">4,089</TableCell>
+                  <TableCell className="text-right">3,650</TableCell>
                   <TableCell className="text-right">89.27%</TableCell>
                   <TableCell className="text-right">1,950</TableCell>
                   <TableCell className="text-right">42.58%</TableCell>
@@ -3666,6 +3742,8 @@ function WaterfallManagementPageContent() {
                   <TableCell className="text-right text-[#EF4444]">-51.01%</TableCell>
                   <TableCell className="text-right text-[#EF4444]">-55.67%</TableCell>
                   <TableCell className="text-right text-[#EF4444]">-91.63%</TableCell>
+                  <TableCell className="text-right text-[#EF4444]">-92.28%</TableCell>
+                  <TableCell className="text-right text-[#EF4444]">-91.74%</TableCell>
                   <TableCell className="text-right text-[#EF4444]">-7.76%</TableCell>
                   <TableCell className="text-right text-[#EF4444]">-92.63%</TableCell>
                   <TableCell className="text-right text-[#EF4444]">-11.95%</TableCell>
@@ -3734,10 +3812,11 @@ function WaterfallManagementPageContent() {
               }
             }}
             onReorder={(reorderedGroups) => {
-              // 更新分组优先级
+              // 更新分组优先级：拖拽后从左到右 priority 依次降低（数值越大优先级越高，最左侧的优先级最高）
+              const total = reorderedGroups.length;
               const updatedGroups = reorderedGroups.map((g, idx) => ({
                 ...g,
-                priority: idx + 1,
+                priority: total - idx,
               }));
               // 合并默认分组（未参与排序的）
               const defaultGroups = filteredAdGroups.filter(g => g.priority >= 999);
@@ -4091,8 +4170,8 @@ function GroupManageList({ groups, selectedIds, onToggleSelect, onToggleSelectAl
     })
   );
 
-  // 分离默认分组和非默认分组，非默认分组参与排序
-  const nonDefaultGroups = groups.filter(g => g.priority < 999).sort((a, b) => a.priority - b.priority);
+  // 分离默认分组和非默认分组，非默认分组参与排序（数值越大优先级越高，最左侧的优先级最高）
+  const nonDefaultGroups = groups.filter(g => g.priority < 999).sort((a, b) => b.priority - a.priority);
   const defaultGroups = groups.filter(g => g.priority >= 999);
   const allNonDefaultSelected = nonDefaultGroups.length > 0 && nonDefaultGroups.every(g => selectedIds.has(g.id));
 
@@ -4318,6 +4397,7 @@ function SourceTable({
             </div>
           </TableHead>
           <TableHead className="w-20">请求量</TableHead>
+          <TableHead className="w-20">返回量</TableHead>
           <TableHead className="w-20">
             <div className="flex items-center gap-1">
               返回率
@@ -4504,6 +4584,8 @@ function SourceTable({
                 ¥{source.thousandRequestValue.toFixed(2)}
               </TableCell><TableCell className="text-[#1D2129]">
                 {formatNumber(source.requests)}
+              </TableCell><TableCell className="text-[#1D2129]">
+                {formatNumber(source.responseCount ?? 0)}
               </TableCell><TableCell className="text-[#1D2129]">
                 {source.responseRate.toFixed(1)}%
               </TableCell><TableCell className="text-[#1D2129]">

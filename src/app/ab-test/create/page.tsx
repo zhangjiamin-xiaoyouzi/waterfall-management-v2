@@ -187,6 +187,20 @@ function CreateABTestContent() {
   const enabledSources = currentGroup?.adSources?.filter(s => s.status === 'enabled') || [];
   const disabledSources = currentGroup?.adSources?.filter(s => s.status !== 'enabled') || [];
 
+  // 默认带入当前分组的 DSP 来源（已启用）到 A/B 测试配置
+  useEffect(() => {
+    if (currentGroup && currentGroup.adSources) {
+      const groupEnabled = currentGroup.adSources.filter(s => s.status === 'enabled');
+      setAbTestConfig(prev => {
+        // 仅当 abTestConfig 为空时才填充，避免覆盖用户已有的修改
+        if (prev.enabledSources.length === 0) {
+          return { enabledSources: groupEnabled };
+        }
+        return prev;
+      });
+    }
+  }, [currentGroup?.id]);
+
   const handleAddPidSource = () => {
     if (!newSourceName || !pidCodeId || !selectedGroupId) {
       setSourceError('请填写必填项');
