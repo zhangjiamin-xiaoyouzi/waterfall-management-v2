@@ -209,7 +209,6 @@ interface CodePosition {
   slot: string;
   slotName: string;
   status: 'enabled' | 'disabled';
-  size?: string;
   minVersion?: string;
   maxVersion?: string;
   size?: string;
