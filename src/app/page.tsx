@@ -387,6 +387,51 @@ function WaterfallManagementPageContent() {
     }
   }, [searchParams]);
 
+  // 从 Supabase 加载数据
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [groupsRes, sourcesRes, cpRes] = await Promise.all([
+          fetch('/api/ad-groups'),
+          fetch('/api/ad-sources'),
+          fetch('/api/code-positions'),
+        ]);
+        const groupsData = await groupsRes.json();
+        const sourcesData = await sourcesRes.json();
+        const cpData = await cpRes.json();
+
+        if (groupsData.data) {
+          // 将广告源关联到对应分组
+          const sourcesByGroup: Record<string, typeof sourcesData.data[0][]> = {};
+          for (const s of sourcesData.data || []) {
+            const gid = s.groupId;
+            if (!sourcesByGroup[gid]) sourcesByGroup[gid] = [];
+            sourcesByGroup[gid].push(s);
+          }
+          const groupsWithSources = groupsData.data.map((g: AdGroup) => ({
+            ...g,
+            adSources: sourcesByGroup[g.id] || [],
+          }));
+          setAdGroups(groupsWithSources);
+          setAdGroupsLoaded(true);
+        }
+
+        if (cpData.data) {
+          setCodePositions(cpData.data);
+          setCodePositionsLoaded(true);
+        }
+      } catch (err) {
+        console.error('加载数据失败:', err);
+        // Fallback to mock data
+        setAdGroups(MOCK_AD_GROUPS);
+        setAdGroupsLoaded(true);
+        setCodePositions(MOCK_CODE_POSITIONS);
+        setCodePositionsLoaded(true);
+      }
+    }
+    loadData();
+  }, []);
+
   // 流量分组查询按钮：将待选值应用到已应用值
   const handleGroupSearch = () => {
     setAppliedScene(activeScene);
@@ -398,7 +443,8 @@ function WaterfallManagementPageContent() {
     end: new Date().toISOString().split('T')[0],
   });
   
-  const [adGroups, setAdGroups] = useState<AdGroup[]>(MOCK_AD_GROUPS);
+  const [adGroups, setAdGroups] = useState<AdGroup[]>([]);
+  const [adGroupsLoaded, setAdGroupsLoaded] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [selectedSources, setSelectedSources] = useState<Set<string>>(new Set());
   const [collapsedDisabled, setCollapsedDisabled] = useState(true);
@@ -426,7 +472,7 @@ function WaterfallManagementPageContent() {
   
   // 页面加载时从 API 加载分组数据
   useEffect(() => {
-    fetch('/api/groups')
+    fetch('/api/ad-groups')
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data && data.data.length > 0) {
@@ -579,7 +625,8 @@ function WaterfallManagementPageContent() {
   const [abTestBatchPrice, setAbTestBatchPrice] = useState('');
 
   // 代码位管理状态
-  const [codePositions, setCodePositions] = useState<CodePosition[]>(MOCK_CODE_POSITIONS);
+  const [codePositions, setCodePositions] = useState<CodePosition[]>([]);
+  const [codePositionsLoaded, setCodePositionsLoaded] = useState(false);
   const [showAddCodeDialog, setShowAddCodeDialog] = useState(false);
   const [editingCodePosition, setEditingCodePosition] = useState<CodePosition | null>(null);
   const [newCodeForm, setNewCodeForm] = useState({
@@ -651,15 +698,24 @@ function WaterfallManagementPageContent() {
     { value: 'cpc', label: 'cpc' },
   ];
 
-  // 综合报表数据：根据筛选条件从mock数据中获取
-  const reportData = useMemo(() => {
-    const key = `${reportScene}-${reportPlatform}`;
-    const mockRows = MOCK_REPORT_DATA[key] || [];
-    // 按日期范围过滤（使用本地日期避免时区偏移）
+  // 综合报表数据：从API获取
+  const [reportData, setReportData] = useState<ReportRow[]>([]);
+  const [reportDataLoading, setReportDataLoading] = useState(false);
+
+  useEffect(() => {
+    if (reportScene === 'all' || reportPlatform === 'all') {
+      setReportData([]);
+      return;
+    }
     const pad = (n: number) => String(n).padStart(2, '0');
     const fromStr = `${reportDateRange.from.getFullYear()}-${pad(reportDateRange.from.getMonth() + 1)}-${pad(reportDateRange.from.getDate())}`;
     const toStr = `${reportDateRange.to.getFullYear()}-${pad(reportDateRange.to.getMonth() + 1)}-${pad(reportDateRange.to.getDate())}`;
-    return mockRows.filter(row => row.date >= fromStr && row.date <= toStr);
+    const params = new URLSearchParams({ scene: reportScene, platform: reportPlatform, startDate: fromStr, endDate: toStr });
+    setReportDataLoading(true);
+    fetch(`/api/report-data?${params}`)
+      .then(r => r.json())
+      .then(res => { setReportData(res.data || []); setReportDataLoading(false); })
+      .catch(() => { setReportData([]); setReportDataLoading(false); });
   }, [reportScene, reportPlatform, reportDateRange]);
 
   // 报表总计行
@@ -736,15 +792,24 @@ function WaterfallManagementPageContent() {
   // A/B测试报表数据指标（复用综合报表指标）
   const AB_REPORT_METRICS = REPORT_METRICS;
 
-  // A/B测试报表数据：根据筛选条件从mock数据中获取
-  const abReportData = useMemo(() => {
-    const key = `${abReportScene}-${abReportPlatform}`;
-    const mockRows = MOCK_AB_REPORT_DATA[key] || [];
-    // 按日期范围过滤（使用本地日期避免时区偏移）
+  // A/B测试报表数据：从API获取
+  const [abReportData, setAbReportData] = useState<Array<{ date: string; groupA: Record<string, number>; groupB: Record<string, number> }>>([]);
+  const [abReportDataLoading, setAbReportDataLoading] = useState(false);
+
+  useEffect(() => {
+    if (abReportScene === 'all' || abReportPlatform === 'all') {
+      setAbReportData([]);
+      return;
+    }
     const pad = (n: number) => String(n).padStart(2, '0');
     const fromStr = `${abReportDateRange.from.getFullYear()}-${pad(abReportDateRange.from.getMonth() + 1)}-${pad(abReportDateRange.from.getDate())}`;
     const toStr = `${abReportDateRange.to.getFullYear()}-${pad(abReportDateRange.to.getMonth() + 1)}-${pad(abReportDateRange.to.getDate())}`;
-    return mockRows.filter(row => row.date >= fromStr && row.date <= toStr);
+    const params = new URLSearchParams({ scene: abReportScene, platform: abReportPlatform, startDate: fromStr, endDate: toStr });
+    setAbReportDataLoading(true);
+    fetch(`/api/ab-report-data?${params}`)
+      .then(r => r.json())
+      .then(res => { setAbReportData(res.data || []); setAbReportDataLoading(false); })
+      .catch(() => { setAbReportData([]); setAbReportDataLoading(false); });
   }, [abReportScene, abReportPlatform, abReportDateRange]);
 
   // A/B测试汇总数据
@@ -834,7 +899,7 @@ function WaterfallManagementPageContent() {
   );
 
   // 切换代码位状态
-  const toggleCodePositionStatus = useCallback((id: string) => {
+  const toggleCodePositionStatus = useCallback(async (id: string) => {
     setCodePositions((prev) =>
       prev.map((cp) =>
         cp.id === id
@@ -842,7 +907,18 @@ function WaterfallManagementPageContent() {
           : cp
       )
     );
-  }, []);
+    try {
+      const cp = codePositions.find(c => c.id === id);
+      if (cp) {
+        const newStatus = cp.status === 'enabled' ? 'disabled' : 'enabled';
+        await fetch('/api/code-positions', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status: newStatus }),
+        });
+      }
+    } catch { /* 静默处理 */ }
+  }, [codePositions]);
 
   // 新增/编辑代码位
   const handleAddCodePosition = useCallback(() => {
@@ -857,33 +933,39 @@ function WaterfallManagementPageContent() {
       '1602': '美柚-她她圈-帖子详情信息流',
     };
     const dspName = DSP_SOURCE_NAMES[newCodeForm.dspSource] || newCodeForm.dspSource;
+    const platformVal = newCodeForm.platform === 'ios' ? 'iOS' : 'Android';
 
     if (editingCodePosition) {
       // 编辑模式
-      setCodePositions((prev) =>
-        prev.map((cp) =>
-          cp.id === editingCodePosition.id
-            ? {
-                ...cp,
-                codeId: newCodeForm.codeId,
-                name: dspName,
-                platform: newCodeForm.platform === 'ios' ? 'iOS' : 'Android',
-                dspSource: dspName,
-                scene: sceneItem?.label || newCodeForm.scene,
-                slot: newCodeForm.slot,
-                slotName: slotMap[newCodeForm.slot] || newCodeForm.slot,
-                status: newCodeForm.enabled ? 'enabled' : 'disabled',
-              }
-            : cp
-        )
-      );
-    } else {
-      // 新增模式
-      const newCode: CodePosition = {
-        id: `cp-${Date.now()}`,
+      const updated: Partial<CodePosition> = {
         codeId: newCodeForm.codeId,
         name: dspName,
-        platform: newCodeForm.platform === 'ios' ? 'iOS' : 'Android',
+        platform: platformVal,
+        dspSource: dspName,
+        scene: sceneItem?.label || newCodeForm.scene,
+        slot: newCodeForm.slot,
+        slotName: slotMap[newCodeForm.slot] || newCodeForm.slot,
+        status: newCodeForm.enabled ? 'enabled' as const : 'disabled' as const,
+      };
+      setCodePositions((prev) =>
+        prev.map((cp) =>
+          cp.id === editingCodePosition.id ? { ...cp, ...updated } : cp
+        )
+      );
+      // Sync to API
+      fetch('/api/code-positions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingCodePosition.id, ...updated }),
+      }).catch(() => {});
+    } else {
+      // 新增模式
+      const newId = `cp-${Date.now()}`;
+      const newCode: CodePosition = {
+        id: newId,
+        codeId: newCodeForm.codeId,
+        name: dspName,
+        platform: platformVal,
         dspSource: dspName,
         scene: sceneItem?.label || newCodeForm.scene,
         slot: newCodeForm.slot,
@@ -891,6 +973,24 @@ function WaterfallManagementPageContent() {
         status: newCodeForm.enabled ? 'enabled' : 'disabled',
       };
       setCodePositions((prev) => [...prev, newCode]);
+      // Sync to API
+      fetch('/api/code-positions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: newId,
+          codeId: newCodeForm.codeId,
+          name: dspName,
+          platform: platformVal,
+          dspSource: dspName,
+          scene: sceneItem?.label || newCodeForm.scene,
+          slot: newCodeForm.slot,
+          slotName: slotMap[newCodeForm.slot] || newCodeForm.slot,
+          status: newCodeForm.enabled ? 'enabled' : 'disabled',
+          minVersion: newCodeForm.minVersion || '',
+          maxVersion: newCodeForm.maxVersion || '',
+        }),
+      }).catch(() => {});
     }
 
     setNewCodeForm({ platform: '', dspSource: '', scene: '', slot: '', codeId: '', minVersion: '', maxVersion: '', enabled: true });
@@ -987,7 +1087,7 @@ function WaterfallManagementPageContent() {
   const handleRollout = async () => {
     if (!currentGroup?.id) return;
     try {
-      const res = await fetch('/api/groups', {
+      const res = await fetch('/api/ad-groups', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1000,7 +1100,7 @@ function WaterfallManagementPageContent() {
         setShowRolloutConfirm(false);
         setShowABTestDataDialog(false);
         // 刷新分组数据
-        fetch('/api/groups')
+        fetch('/api/ad-groups')
           .then(r => r.json())
           .then(data => {
             if (data.success) {
@@ -1050,7 +1150,7 @@ function WaterfallManagementPageContent() {
   }, []);
 
   // 切换分组开关
-  const toggleGroupStatus = useCallback((groupId: string) => {
+  const toggleGroupStatus = useCallback(async (groupId: string) => {
     setAdGroups((prev) =>
       prev.map((g) =>
         g.id === groupId
@@ -1058,7 +1158,18 @@ function WaterfallManagementPageContent() {
           : g
       )
     );
-  }, []);
+    try {
+      const group = adGroups.find(g => g.id === groupId);
+      if (group) {
+        const newStatus = group.status === 'enabled' ? 'disabled' : 'enabled';
+        await fetch('/api/ad-groups', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: groupId, status: newStatus }),
+        });
+      }
+    } catch { /* 静默处理 */ }
+  }, [adGroups]);
 
   // 切换DSP来源开关
   const toggleSourceStatus = useCallback(async (sourceId: string) => {
@@ -1075,10 +1186,10 @@ function WaterfallManagementPageContent() {
       }))
     );
     try {
-      await fetch(`/api/sources/${sourceId}`, {
+      await fetch('/api/ad-sources', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ id: sourceId, status: newStatus }),
       });
     } catch { /* 静默处理 */ }
   }, [adGroups]);
@@ -1094,10 +1205,10 @@ function WaterfallManagementPageContent() {
       }))
     );
     try {
-      await fetch(`/api/sources/${sourceId}`, {
+      await fetch('/api/ad-sources', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price }),
+        body: JSON.stringify({ id: sourceId, price }),
       });
     } catch { /* 静默处理 */ }
   }, []);
@@ -1111,10 +1222,10 @@ function WaterfallManagementPageContent() {
       // 编辑模式：更新现有分组
       const updates: Partial<AdGroup> = { name: newGroupName, priority: newGroupPriority, adSlots: newGroupSlots, rules: newGroupRules };
       try {
-        const res = await fetch(`/api/groups/${editingGroup.id}`, {
+        const res = await fetch('/api/ad-groups', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
+          body: JSON.stringify({ id: editingGroup.id, ...updates }),
         });
         if (res.ok) {
           setAdGroups((prev) =>
@@ -1148,10 +1259,10 @@ function WaterfallManagementPageContent() {
         adSources: [],
       };
       try {
-        const res = await fetch('/api/groups', {
+        const res = await fetch('/api/ad-groups', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ group: newGroup }),
+          body: JSON.stringify(newGroup),
         });
         if (res.ok) {
           const responseData = await res.json();
@@ -1215,10 +1326,10 @@ function WaterfallManagementPageContent() {
         lastUpdated: new Date().toLocaleString('zh-CN'),
       };
       try {
-        await fetch(`/api/sources/${editingSource.id}`, {
+        await fetch('/api/ad-sources', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
+          body: JSON.stringify({ id: editingSource.id, ...updates }),
         });
       } catch {
         // 静默处理
@@ -1265,10 +1376,10 @@ function WaterfallManagementPageContent() {
       } else {
         // 添加到分组
         try {
-          await fetch('/api/sources', {
+          await fetch('/api/ad-sources', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ groupId: selectedGroupId, source: newSource }),
+            body: JSON.stringify({ ...newSource, groupId: selectedGroupId }),
           });
         } catch {
           // 静默处理
@@ -3857,6 +3968,11 @@ function WaterfallManagementPageContent() {
                       selectedSources.has(s.id) ? { ...s, status: 'enabled' as const } : s
                     ),
                   })));
+                  fetch('/api/ad-sources/batch-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sourceIds: Array.from(selectedSources), status: 'enabled' }),
+                  }).catch(console.error);
                 } else if (batchOperation === 'disable') {
                   setAdGroups(prev => prev.map(g => ({
                     ...g,
@@ -3864,6 +3980,11 @@ function WaterfallManagementPageContent() {
                       selectedSources.has(s.id) ? { ...s, status: 'disabled' as const } : s
                     ),
                   })));
+                  fetch('/api/ad-sources/batch-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sourceIds: Array.from(selectedSources), status: 'disabled' }),
+                  }).catch(console.error);
                 } else if (batchOperation === 'setPrice') {
                   const price = parseFloat(batchPrice);
                   if (isNaN(price) || price < 0) return;
@@ -3873,6 +3994,13 @@ function WaterfallManagementPageContent() {
                       selectedSources.has(s.id) ? { ...s, price } : s
                     ),
                   })));
+                  Promise.all(Array.from(selectedSources).map(id =>
+                    fetch(`/api/ad-sources?id=${id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ price }),
+                    })
+                  )).catch(console.error);
                 }
                 setSelectedSources(new Set());
                 setShowBatchDialog(false);
