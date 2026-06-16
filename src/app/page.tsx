@@ -677,9 +677,9 @@ function WaterfallManagementPageContent() {
   });
   const [reportGroup, setReportGroup] = useState<string>('all');
   const [reportMetric, setReportMetric] = useState<string>('incomePerThousand');
-  const [reportScene, setReportScene] = useState<string>('all');
-  const [reportPlatform, setReportPlatform] = useState<string>('all');
-  const [reportSlot, setReportSlot] = useState<string>('all');
+  const [reportScene, setReportScene] = useState<string>('splash');
+  const [reportPlatform, setReportPlatform] = useState<string>('Android');
+  const [reportSlot, setReportSlot] = useState<string>('1000');
 
   // 综合报表指标选项
   const REPORT_METRICS = [
@@ -768,9 +768,9 @@ function WaterfallManagementPageContent() {
 
   // ==================== A/B测试报表状态 ====================
   const [abReportTab, setAbReportTab] = useState<'running' | 'ended'>('running');
-  const [abReportScene, setAbReportScene] = useState<string>('all');
-  const [abReportPlatform, setAbReportPlatform] = useState<string>('all');
-  const [abReportSlot, setAbReportSlot] = useState<string>('all');
+  const [abReportScene, setAbReportScene] = useState<string>('splash');
+  const [abReportPlatform, setAbReportPlatform] = useState<string>('Android');
+  const [abReportSlot, setAbReportSlot] = useState<string>('1000');
   const [abReportGroup, setAbReportGroup] = useState<string>('all');
   const [abReportMetric, setAbReportMetric] = useState<string>('incomePerThousand');
   // 根据场景+平台+广告位过滤出可选的流量分组
